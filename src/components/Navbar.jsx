@@ -162,10 +162,7 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
 
           {/* Create Ad */}
           <button
-            onClick={() => {
-              if (!currentUser) onOpenAuth();
-              else onOpenCreateAd();
-            }}
+            onClick={onOpenCreateAd}
             className="btn btn-primary btn-sm"
             style={{ gap: "0.4rem", fontWeight: 700 }}
           >

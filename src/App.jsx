@@ -174,13 +174,7 @@ const MainContent = () => {
       {/* Top Navbar */}
       <Navbar
         onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenCreateAd={() => {
-          if (!currentUser) {
-            setIsAuthOpen(true);
-          } else {
-            setIsCreateAdOpen(true);
-          }
-        }}
+        onOpenCreateAd={() => setIsCreateAdOpen(true)}
         onOpenTelegram={() => setIsTelegramOpen(true)}
       />
 

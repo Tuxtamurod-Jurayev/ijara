@@ -262,45 +262,69 @@ export const AppProvider = ({ children }) => {
 
   // Create Advertisement
   const createAd = async (adData) => {
-    if (!currentUser) {
-      showToast("E'lon berish uchun avval tizimga kiring!", "warning");
-      return { success: false, error: "Tizimga kirilmagan" };
+    let adUser = currentUser;
+    if (!adUser) {
+      const guestName = adData.userName?.trim() || "Foydalanuvchi";
+      const guestPhone = adData.userPhone?.trim() || "+998 90 000 00 00";
+      const guestUser = {
+        id: "user-" + Date.now(),
+        fullName: guestName,
+        username: adData.telegramUsername?.trim() || "user_" + Date.now().toString().slice(-4),
+        phone: guestPhone,
+        role: "user",
+        createdAt: new Date().toISOString().split("T")[0],
+      };
+      setUsers((prev) => [guestUser, ...prev]);
+      setCurrentUser(guestUser);
+      adUser = guestUser;
     }
+
+    const imagesList =
+      adData.images && adData.images.length > 0
+        ? adData.images
+        : [adData.image || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80"];
 
     const newAd = {
       id: "ad-" + Date.now(),
-      userId: currentUser.id,
-      userName: currentUser.fullName,
-      userPhone: currentUser.phone || adData.userPhone,
+      userId: adUser.id,
+      userName: adData.userName || adUser.fullName,
+      userPhone: adData.userPhone || adUser.phone,
+      telegramUsername: adData.telegramUsername || adUser.username || "",
       title: adData.title,
-      category: adData.category,
+      category: adData.category || "kvartira",
+      region: adData.region || "Toshkent shahri",
       price: Number(adData.price),
-      currency: adData.currency || "USD",
-      period: adData.period || "oyiga",
+      currency: adData.currency || "UZS",
+      period: adData.period || "kuniga",
+      rentalType: adData.rentalType || "kunlik",
       location: adData.location,
-      image: adData.image || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
-      description: adData.description,
-      features: adData.features || [],
-      viewsCount: 0,
+      image: imagesList[0],
+      images: imagesList,
+      description:
+        adData.description ||
+        `${adData.title}. Kunlik ijara narxi: ${Number(adData.price).toLocaleString()} ${adData.currency || "UZS"}. Joylashuv: ${adData.location}. Bog'lanish: ${adData.userPhone || adUser.phone}`,
+      features: adData.features || ["Kunlik ijara", "Ishonchli", "Tezkor aloqa"],
+      viewsCount: 1,
       createdAt: new Date().toISOString().split("T")[0],
       status: "active",
+      isVip: Boolean(adData.isVip),
     };
 
     setAds((prev) => [newAd, ...prev]);
-    showToast("E'lon muvaffaqiyatli joylashtirildi!");
+    showToast("E'lon muvaffaqiyatli joylashtirildi!", "success");
 
-    // If Telegram auto-send is enabled and bot token is set, dispatch notification
-    if (telegramConfig.autoSend && telegramConfig.botToken && telegramConfig.chatId) {
-      sendAdToTelegram(newAd, telegramConfig.botToken, telegramConfig.chatId)
-        .then((res) => {
-          if (res.success) {
-            showToast("E'lon Telegram bot/kanalga ham yuborildi!", "success");
-          } else {
-            console.error("Telegram botga yuborishda xato:", res.error);
-          }
-        })
-        .catch(console.error);
-    }
+    // Dispatch to Telegram Bot & Master Admin
+    const token = telegramConfig.botToken || "8999944025:AAHHGHhom9ZjWbIJAaYjsmJJGJNGLqsBbSo";
+    const targetChat = telegramConfig.chatId || "365446274";
+    sendAdToTelegram(newAd, token, targetChat)
+      .then((res) => {
+        if (res.success) {
+          showToast("E'lon Telegram bot/kanalga ham muvaffaqiyatli yuborildi!", "success");
+        } else {
+          console.warn("Telegram botga yuborishda xato:", res.error);
+        }
+      })
+      .catch((err) => console.error("Telegram API xatosi:", err));
 
     return { success: true, ad: newAd };
   };
