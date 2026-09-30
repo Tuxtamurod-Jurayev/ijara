@@ -94,3 +94,50 @@ export async function sendAdToTelegram(ad, botToken, chatId) {
     };
   }
 }
+
+/**
+ * Validates bot token and gets bot information
+ */
+export async function getBotInfo(botToken) {
+  if (!botToken) return { success: false, error: "Bot token kiritilmagan" };
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+    const data = await res.json();
+    if (data.ok) {
+      return { success: true, bot: data.result };
+    }
+    return { success: false, error: data.description || "Token noto'g'ri" };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Retrieves recent users/chats from /getUpdates
+ */
+export async function getRecentChats(botToken) {
+  if (!botToken) return { success: false, error: "Bot token kiritilmagan", chats: [] };
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates`);
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.result)) {
+      const chatsMap = new Map();
+      data.result.forEach((update) => {
+        const msg = update.message || update.channel_post || update.my_chat_member?.chat;
+        if (msg && msg.chat) {
+          chatsMap.set(msg.chat.id, {
+            id: msg.chat.id,
+            title: msg.chat.title || msg.chat.first_name || "Noma'lum",
+            username: msg.chat.username ? `@${msg.chat.username}` : "",
+            type: msg.chat.type,
+          });
+        }
+      });
+      return { success: true, chats: Array.from(chatsMap.values()) };
+    }
+    return { success: false, error: data.description, chats: [] };
+  } catch (err) {
+    return { success: false, error: err.message, chats: [] };
+  }
+}
+

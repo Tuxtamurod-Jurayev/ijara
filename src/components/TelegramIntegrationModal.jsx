@@ -1,7 +1,16 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { sendAdToTelegram } from "../utils/telegram";
-import { X, Send, Bot, Check, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { sendAdToTelegram, getRecentChats } from "../utils/telegram";
+import {
+  X,
+  Send,
+  Bot,
+  Check,
+  ExternalLink,
+  RefreshCw,
+  Sparkles,
+  MessageSquare,
+} from "lucide-react";
 
 export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
   const { telegramConfig, setTelegramConfig, showToast } = useApp();
@@ -10,6 +19,8 @@ export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
   const [chatId, setChatId] = useState(telegramConfig.chatId || "");
   const [autoSend, setAutoSend] = useState(telegramConfig.autoSend || false);
   const [isSending, setIsSending] = useState(false);
+  const [isFetchingChats, setIsFetchingChats] = useState(false);
+  const [recentChats, setRecentChats] = useState([]);
 
   if (!isOpen) return null;
 
@@ -26,7 +37,7 @@ export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
 
   const handleTest = async () => {
     if (!token.trim() || !chatId.trim()) {
-      showToast("Token va Chat ID kiritilishi shart!", "danger");
+      showToast("Iltimos, Bot Token va Chat ID kiriting!", "danger");
       return;
     }
 
@@ -38,9 +49,9 @@ export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
       currency: "USD",
       period: "oyiga",
       location: "Toshkent shahri",
-      userName: "Foydalanuvchi",
+      userName: "Bosh Administrator",
       userPhone: "+998 90 000 00 00",
-      description: "Telegram Bot integratsiyasi muvaffaqiyatli ishlayapti! 🚀",
+      description: "IjaraBozor platformasi Telegram botga muvaffaqiyatli bog'landi! 🚀",
       image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
     };
 
@@ -48,9 +59,27 @@ export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
     setIsSending(false);
 
     if (res.success) {
-      showToast("Telegramga test xabar yuborildi!", "success");
+      showToast("Telegramga sinov e'loni yuborildi!", "success");
     } else {
       showToast(`Xatolik: ${res.error}`, "danger");
+    }
+  };
+
+  const handleFetchRecentChats = async () => {
+    if (!token.trim()) {
+      showToast("Bot token kiritilmagan", "warning");
+      return;
+    }
+
+    setIsFetchingChats(true);
+    const res = await getRecentChats(token.trim());
+    setIsFetchingChats(false);
+
+    if (res.success && res.chats.length > 0) {
+      setRecentChats(res.chats);
+      showToast(`${res.chats.length} ta suhbat/kanal topildi!`);
+    } else {
+      showToast("Hozircha yangi xabar yo'q. Avval botga /start bosing yoki kanalga qo'shing.", "warning");
     }
   };
 
@@ -82,7 +111,7 @@ export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
                 Telegram Bot Integratsiyasi
               </h3>
               <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                Keyingi bosqich: Bot va WebApp bilan bevosita bog'lash
+                @ijara_buyum_bot bilan to'g'ridan-to'g'ri aloqa
               </p>
             </div>
           </div>
@@ -96,19 +125,40 @@ export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
         </div>
 
         <form onSubmit={handleSave} className="modal-body">
+          {/* Active Bot Info Banner */}
           <div
             style={{
-              padding: "0.85rem",
-              background: "var(--bg-card-subtle)",
+              padding: "0.85rem 1rem",
+              background: "rgba(0, 136, 204, 0.08)",
               borderRadius: "var(--radius-md)",
-              border: "1px solid var(--border)",
-              fontSize: "0.85rem",
-              color: "var(--text-muted)",
+              border: "1px solid rgba(0, 136, 204, 0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
               marginBottom: "1.25rem",
-              lineHeight: 1.5,
             }}
           >
-            Bu yerda kiritilgan Bot Token va Chat ID orqali yangi e'lonlar to'g'ridan-to'g'ri Telegram kanal yoki guruhga chiroyli rasm va tavsifi bilan avtomatik boradi.
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Bot size={20} color="#0088cc" />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-main)" }}>
+                  Ijara buyumlar (@ijara_buyum_bot)
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                  Telegram tokeni faol va sozlangan
+                </div>
+              </div>
+            </div>
+            <a
+              href="https://t.me/ijara_buyum_bot"
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-sm btn-secondary"
+              style={{ fontSize: "0.75rem", padding: "0.3rem 0.65rem", gap: "0.35rem" }}
+            >
+              <span>Botni ochish</span>
+              <ExternalLink size={12} />
+            </a>
           </div>
 
           <div className="input-group">
@@ -123,15 +173,73 @@ export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="input-group">
-            <label className="input-label">Chat ID yoki Kanal (@kanal_nomi)</label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+              <label className="input-label" style={{ margin: 0 }}>
+                Chat ID yoki Kanal (@kanal_nomi)
+              </label>
+              <button
+                type="button"
+                onClick={handleFetchRecentChats}
+                disabled={isFetchingChats}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#0088cc",
+                  fontSize: "0.75rem",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.3rem",
+                  fontWeight: 600,
+                }}
+              >
+                <RefreshCw size={12} className={isFetchingChats ? "spinning" : ""} />
+                <span>Chat ID ni aniqlash</span>
+              </button>
+            </div>
             <input
               type="text"
-              placeholder="-1001234567890 yoki @ijara_kanal"
+              placeholder="Masalan: -1001234567890 yoki shaxsiy chat_id"
               value={chatId}
               onChange={(e) => setChatId(e.target.value)}
               className="input-field"
             />
           </div>
+
+          {/* If recent chats detected */}
+          {recentChats.length > 0 && (
+            <div
+              style={{
+                marginBottom: "1rem",
+                padding: "0.65rem",
+                background: "var(--bg-card-subtle)",
+                borderRadius: "var(--radius-md)",
+                border: "1px dashed var(--border)",
+              }}
+            >
+              <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                Topilgan suhbatlar (Tanlash uchun bosing):
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                {recentChats.map((c) => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    onClick={() => setChatId(String(c.id))}
+                    className="btn btn-sm btn-secondary"
+                    style={{
+                      justifyContent: "space-between",
+                      fontSize: "0.75rem",
+                      padding: "0.35rem 0.65rem",
+                    }}
+                  >
+                    <span>{c.title} {c.username}</span>
+                    <strong style={{ color: "var(--primary)" }}>{c.id}</strong>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1.5rem" }}>
             <input
@@ -155,7 +263,7 @@ export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
               style={{ flex: 1 }}
             >
               <Send size={15} />
-              <span>{isSending ? "Yuborilmoqda..." : "Test Xabar"}</span>
+              <span>{isSending ? "Yuborilmoqda..." : "Test E'lon"}</span>
             </button>
             <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
               <Check size={16} />

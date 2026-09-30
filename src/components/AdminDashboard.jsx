@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { UserAdsModal } from "./UserAdsModal";
-import { sendAdToTelegram } from "../utils/telegram";
+import { sendAdToTelegram, getRecentChats } from "../utils/telegram";
 import {
   Users,
   Layers,
@@ -17,7 +17,10 @@ import {
   ExternalLink,
   PlusCircle,
   Settings,
+  Bot,
+  RefreshCw,
 } from "lucide-react";
+
 
 export const AdminDashboard = ({ onSelectAd }) => {
   const {
@@ -39,6 +42,9 @@ export const AdminDashboard = ({ onSelectAd }) => {
   const [testChatId, setTestChatId] = useState(telegramConfig.chatId || "");
   const [autoSend, setAutoSend] = useState(telegramConfig.autoSend || false);
   const [isTesting, setIsTesting] = useState(false);
+  const [recentChats, setRecentChats] = useState([]);
+  const [isFetchingChats, setIsFetchingChats] = useState(false);
+
 
   // Filtered users
   const filteredUsers = users.filter((u) => {
@@ -96,6 +102,23 @@ export const AdminDashboard = ({ onSelectAd }) => {
       showToast(`Xatolik: ${res.error}`, "danger");
     }
   };
+
+  const handleFetchRecentChats = async () => {
+    if (!testToken.trim()) {
+      showToast("Bot token kiritilmagan", "warning");
+      return;
+    }
+    setIsFetchingChats(true);
+    const res = await getRecentChats(testToken.trim());
+    setIsFetchingChats(false);
+    if (res.success && res.chats.length > 0) {
+      setRecentChats(res.chats);
+      showToast(`${res.chats.length} ta suhbat/kanal topildi!`);
+    } else {
+      showToast("Hozircha botda xabarlar topilmadi. Avval botga @ijara_buyum_bot da /start bosing.", "warning");
+    }
+  };
+
 
   return (
     <div className="container" style={{ padding: "2rem 1.25rem 4rem" }}>
@@ -493,18 +516,45 @@ export const AdminDashboard = ({ onSelectAd }) => {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
           {/* Config card */}
           <div className="card" style={{ padding: "1.5rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(0, 136, 204, 0.15)", color: "#0088cc", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Send size={18} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(0, 136, 204, 0.15)", color: "#0088cc", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Send size={18} />
+                </div>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>
+                  Telegram Bot Sozlamalari
+                </h3>
               </div>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>
-                Telegram Bot Sozlamalari
-              </h3>
+              <a
+                href="https://t.me/ijara_buyum_bot"
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-sm btn-secondary"
+                style={{ fontSize: "0.75rem", gap: "0.3rem", padding: "0.3rem 0.65rem" }}
+              >
+                <span>@ijara_buyum_bot</span>
+                <ExternalLink size={12} />
+              </a>
             </div>
 
-            <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginBottom: "1.25rem", lineHeight: 1.5 }}>
-              Yangi e'lon berilganda to'g'ridan-to'g'ri Telegram kanal, guruh yoki botingizga avtomatik foto va ma'lumotlarni yuborish.
-            </p>
+            {/* Active Bot status pill */}
+            <div
+              style={{
+                padding: "0.75rem 1rem",
+                background: "rgba(0, 136, 204, 0.08)",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid rgba(0, 136, 204, 0.2)",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.6rem",
+                marginBottom: "1.25rem",
+              }}
+            >
+              <Bot size={20} color="#0088cc" />
+              <div style={{ fontSize: "0.825rem" }}>
+                <span style={{ fontWeight: 700 }}>Ijara buyumlar</span> boti ulandi. Yangi e'lonlar shu bot orqali avtomat yuboriladi.
+              </div>
+            </div>
 
             <form onSubmit={handleSaveTelegram}>
               <div className="input-group">
@@ -519,7 +569,30 @@ export const AdminDashboard = ({ onSelectAd }) => {
               </div>
 
               <div className="input-group">
-                <label className="input-label">Telegram Chat ID yoki Kanal (@username)</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                  <label className="input-label" style={{ margin: 0 }}>
+                    Telegram Chat ID yoki Kanal (@username)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleFetchRecentChats}
+                    disabled={isFetchingChats}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#0088cc",
+                      fontSize: "0.75rem",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.3rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    <RefreshCw size={12} className={isFetchingChats ? "spinning" : ""} />
+                    <span>Chat ID larni aniqlash</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   placeholder="Masalan: -1001234567890 yoki @ijarakanal"
@@ -528,6 +601,41 @@ export const AdminDashboard = ({ onSelectAd }) => {
                   className="input-field"
                 />
               </div>
+
+              {/* Recent chats quick picker if detected */}
+              {recentChats.length > 0 && (
+                <div
+                  style={{
+                    marginBottom: "1rem",
+                    padding: "0.65rem",
+                    background: "var(--bg-card-subtle)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px dashed var(--border)",
+                  }}
+                >
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                    Topilgan suhbatlar:
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                    {recentChats.map((c) => (
+                      <button
+                        type="button"
+                        key={c.id}
+                        onClick={() => setTestChatId(String(c.id))}
+                        className="btn btn-sm btn-secondary"
+                        style={{
+                          justifyContent: "space-between",
+                          fontSize: "0.75rem",
+                          padding: "0.35rem 0.65rem",
+                        }}
+                      >
+                        <span>{c.title} {c.username}</span>
+                        <strong style={{ color: "var(--primary)" }}>{c.id}</strong>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
                 <input
@@ -541,6 +649,7 @@ export const AdminDashboard = ({ onSelectAd }) => {
                   Yangi e'lon qo'shilganda avtomatik botga yuborish
                 </label>
               </div>
+
 
               <div style={{ display: "flex", gap: "0.75rem" }}>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>

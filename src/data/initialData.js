@@ -8,6 +8,15 @@ export const ADMIN_CREDENTIALS = {
   phone: "+998 71 200 00 00",
 };
 
+export const DEFAULT_TELEGRAM_CONFIG = {
+  botToken: "8999944025:AAHHGHhom9ZjWbIJAaYjsmJJGJNGLqsBbSo",
+  botUsername: "ijara_buyum_bot",
+  botName: "Ijara buyumlar",
+  chatId: "",
+  autoSend: true,
+};
+
+
 export const INITIAL_USERS = [
   {
     id: "user-1",

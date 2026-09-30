@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { INITIAL_USERS, INITIAL_ADS, ADMIN_CREDENTIALS } from "../data/initialData";
+import { INITIAL_USERS, INITIAL_ADS, ADMIN_CREDENTIALS, DEFAULT_TELEGRAM_CONFIG } from "../data/initialData";
 import { initTelegramWebApp, sendAdToTelegram } from "../utils/telegram";
 
 const AppContext = createContext();
@@ -39,14 +39,16 @@ export const AppProvider = ({ children }) => {
   // Telegram Bot integration config
   const [telegramConfig, setTelegramConfig] = useState(() => {
     const saved = localStorage.getItem("ijara_telegram_config");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          botToken: "",
-          chatId: "",
-          autoSend: false,
-        };
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (!parsed.botToken) {
+        parsed.botToken = DEFAULT_TELEGRAM_CONFIG.botToken;
+      }
+      return parsed;
+    }
+    return DEFAULT_TELEGRAM_CONFIG;
   });
+
 
   // Toasts
   const [toasts, setToasts] = useState([]);
