@@ -1,5 +1,36 @@
 [
   {
+    "id": "ad-1790776966432",
+    "userId": "tg-365446274",
+    "userName": "ᴛᴏ'xᴛᴀᴍᴜʀᴏᴅ",
+    "userPhone": "+998930406364",
+    "telegramUsername": "Perfektum_1997",
+    "title": "telefon",
+    "category": "texnika",
+    "region": "Toshkent shahri",
+    "price": 300000,
+    "currency": "UZS",
+    "period": "kuniga",
+    "rentalType": "kunlik",
+    "location": "Namagan",
+    "image": "https://api.telegram.org/file/bot8999944025:AAHHGHhom9ZjWbIJAaYjsmJJGJNGLqsBbSo/photos/file_0.jpg",
+    "images": [
+      "https://api.telegram.org/file/bot8999944025:AAHHGHhom9ZjWbIJAaYjsmJJGJNGLqsBbSo/photos/file_0.jpg",
+      "https://api.telegram.org/file/bot8999944025:AAHHGHhom9ZjWbIJAaYjsmJJGJNGLqsBbSo/photos/file_1.jpg",
+      "https://api.telegram.org/file/bot8999944025:AAHHGHhom9ZjWbIJAaYjsmJJGJNGLqsBbSo/photos/file_2.jpg"
+    ],
+    "description": "telefon.\nKunlik ijara: 300 000 UZS.\nManzil: Namagan.\nBog'lanish: +998930406364.",
+    "features": [
+      "Kunlik ijara",
+      "Ishonchli",
+      "Tezkor aloqa"
+    ],
+    "viewsCount": 1,
+    "isVip": false,
+    "createdAt": "2026-09-30",
+    "status": "active"
+  },
+  {
     "id": "ad-1",
     "userId": "user-1",
     "userName": "Javohir Toshpo'latov",
@@ -25,7 +56,15 @@
       "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80"
     ],
     "description": "Evroremont qilingan, barcha maishiy texnikalar va yangi mebellar bilan jihozlangan. Metroga 5 daqiqalik masofada. Uzoq muddatga oilaga yoki xorijiy mehmonlarga beriladi. Makler haqi yo'q.",
-    "features": ["Wi-Fi Internet", "Konditsioner", "Mebel", "Kir yuvish mashinasi", "Lift bor", "Balkon", "Avtoturargoh"],
+    "features": [
+      "Wi-Fi Internet",
+      "Konditsioner",
+      "Mebel",
+      "Kir yuvish mashinasi",
+      "Lift bor",
+      "Balkon",
+      "Avtoturargoh"
+    ],
     "viewsCount": 420,
     "isVip": true,
     "createdAt": "2026-09-26",
@@ -52,7 +91,15 @@
       "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
     ],
     "description": "Yangi holatda, toza va xavfsiz. To'liq KASKO sug'urtalangan. Haydovchisiz beriladi, pasport va haydovchilik guvohnomasi talab qilinadi. Toshkent va viloyatlar bo'ylab haydash mumkin.",
-    "features": ["Avtomat uzatma", "Lyuk", "Kruiz-kontrol", "Toza salon", "KASKO sug'urta", "Bluetooth", "Videoregistrator"],
+    "features": [
+      "Avtomat uzatma",
+      "Lyuk",
+      "Kruiz-kontrol",
+      "Toza salon",
+      "KASKO sug'urta",
+      "Bluetooth",
+      "Videoregistrator"
+    ],
     "viewsCount": 610,
     "isVip": true,
     "createdAt": "2026-09-28",
@@ -82,7 +129,15 @@
       "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
     ],
     "description": "Oilaviy dam olish va do'stlar bilan hordiq chiqarish uchun mo'ljallangan dacha. Filtrlangan qishki/yozgi issiq basseyin, fin saunasi, bilyard xonasi, PlayStation 5, mangal, qozon-ochoq va tapchan bor.",
-    "features": ["Issiq Basseyin", "Fin Saunasi", "Bilyard", "PlayStation 5", "Wi-Fi", "Mangal & Qozon", "Tog' manzarasi"],
+    "features": [
+      "Issiq Basseyin",
+      "Fin Saunasi",
+      "Bilyard",
+      "PlayStation 5",
+      "Wi-Fi",
+      "Mangal & Qozon",
+      "Tog' manzarasi"
+    ],
     "viewsCount": 940,
     "isVip": true,
     "createdAt": "2026-09-25",
@@ -111,7 +166,14 @@
       "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80"
     ],
     "description": "IT kompaniyalar yoki konsalting agentliklari uchun to'liq tayyor ofis. Ochiq coworking maydoni, meeting room va alohida rahbar kabineti bor. 24/7 qo'riqlash xizmati va yerosti avtoturargohi mavjud.",
-    "features": ["24/7 kirish", "Keng avtoturargoh", "Tezyurar Internet", "Meeting room", "Konditsioner tizimi", "Kamera nazorati"],
+    "features": [
+      "24/7 kirish",
+      "Keng avtoturargoh",
+      "Tezyurar Internet",
+      "Meeting room",
+      "Konditsioner tizimi",
+      "Kamera nazorati"
+    ],
     "viewsCount": 240,
     "isVip": false,
     "createdAt": "2026-09-27",
@@ -138,7 +200,13 @@
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80"
     ],
     "description": "Klip, to'y yoki tijorat videolari olish uchun professional kamera. To'plamda: Sony FX3, 24-70mm GM II linza, 3 ta batareya, CFexpress kartasi va DJI RS3 Pro stabilizator mavjud.",
-    "features": ["4K 120fps", "DJI RS3 Gimbal", "3x Batareya", "Professional mikrofon", "Tezkor karta"],
+    "features": [
+      "4K 120fps",
+      "DJI RS3 Gimbal",
+      "3x Batareya",
+      "Professional mikrofon",
+      "Tezkor karta"
+    ],
     "viewsCount": 180,
     "isVip": false,
     "createdAt": "2026-09-29",
@@ -164,7 +232,13 @@
       "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
     ],
     "description": "Toza va tejamkor avtomobil. Propan gaz va benzin. Sayohatlar, to'ylar va mehmonlar kutib olish uchun ideal. Minimal ijara muddati: 2 kun.",
-    "features": ["Konditsioner", "Avtomat karobka", "Toza salon", "Propan/Benzin", "Musiqa tizimi"],
+    "features": [
+      "Konditsioner",
+      "Avtomat karobka",
+      "Toza salon",
+      "Propan/Benzin",
+      "Musiqa tizimi"
+    ],
     "viewsCount": 310,
     "isVip": false,
     "createdAt": "2026-09-30",

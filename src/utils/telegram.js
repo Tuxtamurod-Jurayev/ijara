@@ -55,22 +55,28 @@ export async function sendAdToTelegram(ad, botToken, chatId) {
     let endpoint = "";
     let body = {};
 
-    if (ad.image && ad.image.startsWith("http")) {
-      endpoint = `https://api.telegram.org/bot${botToken}/sendPhoto`;
-      body = {
-        chat_id: chatId,
-        photo: ad.image,
-        caption: captionText,
-        parse_mode: "HTML",
-      };
-    } else {
-      endpoint = `https://api.telegram.org/bot${botToken}/sendMessage`;
-      body = {
-        chat_id: chatId,
-        text: captionText,
-        parse_mode: "HTML",
-      };
-    }
+    // Find valid HTTP image or category fallback (data URLs not accepted by sendPhoto JSON)
+    const categoryDefaults = {
+      kvartira: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80",
+      avto: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80",
+      hovli: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80",
+      ofis: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
+      texnika: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
+    };
+
+    const firstHttpImage =
+      (ad.images && ad.images.find((img) => typeof img === "string" && img.startsWith("http"))) ||
+      (ad.image && ad.image.startsWith("http") ? ad.image : null) ||
+      categoryDefaults[ad.category?.toLowerCase()] ||
+      categoryDefaults.kvartira;
+
+    endpoint = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+    body = {
+      chat_id: chatId,
+      photo: firstHttpImage,
+      caption: captionText,
+      parse_mode: "HTML",
+    };
 
     const response = await fetch(endpoint, {
       method: "POST",
