@@ -1,0 +1,4 @@
+# Ignore non-web backend files from Vercel deployment
+bot.js
+subscribers.json
+.oxlintrc.json
