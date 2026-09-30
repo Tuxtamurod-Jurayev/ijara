@@ -28,11 +28,28 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Navigation & views: 'home' | 'admin' | 'my-ads'
+  // Telegram WebApp environment
+  const [telegramInfo, setTelegramInfo] = useState({
+    isInsideTelegram: false,
+    user: null,
+  });
+
+  // Favorites state (persisted)
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem("ijara_favorites");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Navigation & views: 'home' | 'admin' | 'my-ads' | 'favorites'
   const [activeView, setActiveView] = useState("home");
 
-  // Filter & Search states
+  // Advanced Filter states (Like OLX & Airbnb)
   const [activeCategory, setActiveCategory] = useState("all");
+  const [activeRegion, setActiveRegion] = useState("Barchasi");
+  const [activeDuration, setActiveDuration] = useState("all");
+  const [activeRooms, setActiveRooms] = useState("all");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceSort, setPriceSort] = useState("default"); // 'default', 'asc', 'desc'
 
@@ -48,7 +65,6 @@ export const AppProvider = ({ children }) => {
     }
     return DEFAULT_TELEGRAM_CONFIG;
   });
-
 
   // Toasts
   const [toasts, setToasts] = useState([]);
@@ -69,6 +85,11 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem("ijara_ads", JSON.stringify(ads));
   }, [ads]);
 
+  // Sync favorites
+  useEffect(() => {
+    localStorage.setItem("ijara_favorites", JSON.stringify(favorites));
+  }, [favorites]);
+
   // Sync currentUser to localStorage
   useEffect(() => {
     if (currentUser) {
@@ -83,13 +104,45 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem("ijara_telegram_config", JSON.stringify(telegramConfig));
   }, [telegramConfig]);
 
-  // Check Telegram WebApp on launch
+  // Check Telegram WebApp on launch & Auto-detect user
   useEffect(() => {
     const tg = initTelegramWebApp();
-    if (tg.isInsideTelegram && tg.user) {
-      console.log("Telegram WebApp foydalanuvchisi:", tg.user);
+    if (tg.isInsideTelegram) {
+      setTelegramInfo({
+        isInsideTelegram: true,
+        user: tg.user,
+      });
+
+      // Auto login or prefill session from Telegram user
+      if (tg.user && !currentUser) {
+        const tgUser = {
+          id: `tg-${tg.user.id}`,
+          fullName: `${tg.user.first_name || ""} ${tg.user.last_name || ""}`.trim() || "Telegram Foydalanuvchisi",
+          username: tg.user.username || `tg_${tg.user.id}`,
+          phone: "+998 ",
+          role: "user",
+          isTelegramUser: true,
+          avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80`,
+        };
+        setCurrentUser(tgUser);
+      }
     }
   }, []);
+
+  // Toggle Favorite
+  const toggleFavorite = (adId) => {
+    setFavorites((prev) => {
+      const exists = prev.includes(adId);
+      if (exists) {
+        showToast("Sevimlilardan olib tashlandi", "warning");
+        return prev.filter((id) => id !== adId);
+      } else {
+        showToast("Sevimlilarga qo'shildi! ❤️", "success");
+        return [...prev, adId];
+      }
+    });
+  };
+
 
   // Toast notifier helper
   const showToast = (message, type = "success") => {
@@ -273,10 +326,23 @@ export const AppProvider = ({ children }) => {
         currentUser,
         users,
         ads,
+        favorites,
+        toggleFavorite,
+        telegramInfo,
         activeView,
         setActiveView,
         activeCategory,
         setActiveCategory,
+        activeRegion,
+        setActiveRegion,
+        activeDuration,
+        setActiveDuration,
+        activeRooms,
+        setActiveRooms,
+        minPrice,
+        setMinPrice,
+        maxPrice,
+        setMaxPrice,
         searchQuery,
         setSearchQuery,
         priceSort,
@@ -295,6 +361,7 @@ export const AppProvider = ({ children }) => {
       }}
     >
       {children}
+
     </AppContext.Provider>
   );
 };

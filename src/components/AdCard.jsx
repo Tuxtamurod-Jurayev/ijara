@@ -8,17 +8,25 @@ import {
   Trash2,
   ExternalLink,
   Tag,
+  Heart,
+  Camera,
+  Crown,
+  Send,
 } from "lucide-react";
 
 export const AdCard = ({ ad, onSelectAd }) => {
-  const { currentUser, deleteAd } = useApp();
+  const { currentUser, deleteAd, favorites, toggleFavorite } = useApp();
 
   const isOwnerOrAdmin =
     currentUser?.role === "admin" || (currentUser && currentUser.id === ad.userId);
 
+  const isFavorite = favorites.includes(ad.id);
+
   const formatPrice = (price, currency) => {
     return `${price.toLocaleString()} ${currency}`;
   };
+
+  const photoCount = ad.images?.length || 1;
 
   return (
     <div
@@ -29,6 +37,7 @@ export const AdCard = ({ ad, onSelectAd }) => {
         height: "100%",
         position: "relative",
         cursor: "pointer",
+        border: ad.isVip ? "1.5px solid rgba(245, 158, 11, 0.4)" : "1px solid var(--border)",
       }}
       onClick={() => onSelectAd(ad)}
     >
@@ -59,21 +68,23 @@ export const AdCard = ({ ad, onSelectAd }) => {
           loading="lazy"
         />
 
-        {/* Category Badge overlay */}
+        {/* Badges on Top Left (Category & VIP) */}
         <div
           style={{
             position: "absolute",
             top: "0.75rem",
             left: "0.75rem",
             display: "flex",
-            gap: "0.5rem",
+            flexWrap: "wrap",
+            gap: "0.4rem",
+            zIndex: 2,
           }}
         >
           <span
-            className="badge badge-primary"
+            className="badge"
             style={{
               backdropFilter: "blur(8px)",
-              background: "rgba(15, 23, 42, 0.75)",
+              background: "rgba(15, 23, 42, 0.8)",
               color: "#ffffff",
               border: "1px solid rgba(255, 255, 255, 0.15)",
               textTransform: "capitalize",
@@ -81,6 +92,83 @@ export const AdCard = ({ ad, onSelectAd }) => {
           >
             {ad.category}
           </span>
+
+          {ad.isVip && (
+            <span
+              className="badge"
+              style={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                color: "#ffffff",
+                fontWeight: 800,
+                fontSize: "0.72rem",
+                boxShadow: "0 2px 8px rgba(245, 158, 11, 0.4)",
+              }}
+            >
+              <Crown size={12} /> VIP
+            </span>
+          )}
+        </div>
+
+        {/* Top Right: Favorite Button & Photo Count */}
+        <div
+          style={{
+            position: "absolute",
+            top: "0.75rem",
+            right: "0.75rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            zIndex: 2,
+          }}
+        >
+          {photoCount > 1 && (
+            <span
+              style={{
+                background: "rgba(15, 23, 42, 0.75)",
+                color: "#ffffff",
+                backdropFilter: "blur(6px)",
+                padding: "0.2rem 0.5rem",
+                borderRadius: "var(--radius-full)",
+                fontSize: "0.72rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.25rem",
+                fontWeight: 600,
+              }}
+            >
+              <Camera size={11} /> {photoCount}
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(ad.id);
+            }}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              background: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "transform 150ms ease",
+            }}
+            onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.88)")}
+            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            title={isFavorite ? "Sevimlilardan o'chirish" : "Sevimlilarga qo'shish"}
+          >
+            <Heart
+              size={16}
+              color={isFavorite ? "#ef4444" : "#ffffff"}
+              fill={isFavorite ? "#ef4444" : "none"}
+            />
+          </button>
         </div>
 
         {/* Price Tag Overlay */}
@@ -89,7 +177,7 @@ export const AdCard = ({ ad, onSelectAd }) => {
             position: "absolute",
             bottom: "0.75rem",
             right: "0.75rem",
-            background: "rgba(15, 23, 42, 0.85)",
+            background: "rgba(15, 23, 42, 0.88)",
             backdropFilter: "blur(10px)",
             padding: "0.35rem 0.75rem",
             borderRadius: "var(--radius-md)",
@@ -124,7 +212,7 @@ export const AdCard = ({ ad, onSelectAd }) => {
               fontSize: "1.05rem",
               fontWeight: "700",
               lineHeight: 1.4,
-              marginBottom: "0.6rem",
+              marginBottom: "0.5rem",
               color: "var(--text-main)",
               display: "-webkit-box",
               WebkitLineClamp: 2,
@@ -136,7 +224,7 @@ export const AdCard = ({ ad, onSelectAd }) => {
             {ad.title}
           </h3>
 
-          {/* Location */}
+          {/* Location & Region */}
           <div
             style={{
               display: "flex",
@@ -149,7 +237,7 @@ export const AdCard = ({ ad, onSelectAd }) => {
           >
             <MapPin size={15} style={{ flexShrink: 0, color: "var(--primary)" }} />
             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {ad.location}
+              {ad.region && ad.region !== "Toshkent shahri" ? `${ad.region}, ` : ""}{ad.location}
             </span>
           </div>
 
@@ -163,6 +251,20 @@ export const AdCard = ({ ad, onSelectAd }) => {
                 marginBottom: "1rem",
               }}
             >
+              {ad.rooms && (
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    padding: "0.2rem 0.5rem",
+                    background: "var(--primary-light)",
+                    color: "var(--primary)",
+                    fontWeight: 700,
+                    borderRadius: "var(--radius-sm)",
+                  }}
+                >
+                  {ad.rooms} xona
+                </span>
+              )}
               {ad.features.slice(0, 3).map((f, i) => (
                 <span
                   key={i}
@@ -215,12 +317,35 @@ export const AdCard = ({ ad, onSelectAd }) => {
             >
               {ad.userName ? ad.userName.charAt(0) : "U"}
             </div>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", maxWidth: "110px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {ad.userName}
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+            {ad.telegramUsername && (
+              <a
+                href={`https://t.me/${ad.telegramUsername}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  background: "rgba(0, 136, 204, 0.12)",
+                  color: "#0088cc",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textDecoration: "none",
+                }}
+                title={`Telegramda yozish (@${ad.telegramUsername})`}
+              >
+                <Send size={13} />
+              </a>
+            )}
+
             <span
               style={{
                 display: "flex",

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
+import { REGIONS } from "../data/initialData";
 import {
   X,
   Upload,
@@ -10,6 +11,7 @@ import {
   Tag,
   Sparkles,
   Send,
+  Crown,
 } from "lucide-react";
 
 // Curated high quality presets for quick testing
@@ -39,12 +41,22 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("kvartira");
+  const [region, setRegion] = useState("Toshkent shahri");
+  const [rentalType, setRentalType] = useState("oylik");
+  const [rooms, setRooms] = useState("2");
+  const [area, setArea] = useState("");
   const [price, setPrice] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [period, setPeriod] = useState("oyiga");
   const [location, setLocation] = useState("Toshkent sh., ");
+  const [telegramUsername, setTelegramUsername] = useState(
+    currentUser?.username && !currentUser.username.startsWith("user")
+      ? currentUser.username
+      : ""
+  );
   const [image, setImage] = useState(PRESET_IMAGES[0].url);
   const [customImageUrl, setCustomImageUrl] = useState("");
+  const [isVip, setIsVip] = useState(false);
   const [description, setDescription] = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState(["Wi-Fi", "Konditsioner"]);
 
@@ -66,11 +78,18 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
     const res = await createAd({
       title,
       category,
+      region,
+      rentalType,
+      rooms: category === "kvartira" || category === "hovli" ? rooms : null,
+      area: area ? Number(area) : null,
       price: Number(price),
       currency,
       period,
       location,
+      telegramUsername: telegramUsername.replace("@", "").trim(),
       image: finalImage,
+      images: [finalImage],
+      isVip,
       description,
       features: selectedFeatures,
     });
@@ -80,6 +99,7 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
       // Reset form
       setTitle("");
       setPrice("");
+      setArea("");
       setDescription("");
       setCustomImageUrl("");
     }
@@ -89,7 +109,7 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal-content"
-        style={{ maxWidth: "620px" }}
+        style={{ maxWidth: "660px" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -124,7 +144,7 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
             />
           </div>
 
-          {/* Category & Period */}
+          {/* Category & Region */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
             <div className="input-group">
               <label className="input-label">Toifa (Kategoriya) *</label>
@@ -142,27 +162,56 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
             </div>
 
             <div className="input-group">
-              <label className="input-label">Ijara muddati *</label>
+              <label className="input-label">Viloyat / Shahar *</label>
               <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
                 className="select-field"
               >
-                <option value="oyiga">Oyiga</option>
-                <option value="kuniga">Kuniga</option>
-                <option value="soatiga">Soatiga</option>
-                <option value="haftasiga">Haftasiga</option>
+                {REGIONS.filter((r) => r !== "Barchasi").map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
               </select>
             </div>
           </div>
 
-          {/* Price & Currency */}
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1rem" }}>
+          {/* Rooms and Area (if property) */}
+          {(category === "kvartira" || category === "hovli" || category === "ofis") && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="input-group">
+                <label className="input-label">Xonalar soni</label>
+                <select
+                  value={rooms}
+                  onChange={(e) => setRooms(e.target.value)}
+                  className="select-field"
+                >
+                  <option value="1">1 xona</option>
+                  <option value="2">2 xona</option>
+                  <option value="3">3 xona</option>
+                  <option value="4+">4+ xona</option>
+                </select>
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Maydoni (m²)</label>
+                <input
+                  type="number"
+                  placeholder="Masalan: 75"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Price, Currency & Period */}
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "0.75rem" }}>
             <div className="input-group">
               <label className="input-label">Narxi *</label>
               <input
                 type="number"
-                placeholder="Masalan: 500 yoki 400000"
+                placeholder="Masalan: 500"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 className="input-field"
@@ -172,7 +221,7 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
             </div>
 
             <div className="input-group">
-              <label className="input-label">Valyuta *</label>
+              <label className="input-label">Valyuta</label>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
@@ -182,24 +231,50 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
                 <option value="UZS">UZS (so'm)</option>
               </select>
             </div>
+
+            <div className="input-group">
+              <label className="input-label">Muddat</label>
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="select-field"
+              >
+                <option value="oyiga">Oyiga</option>
+                <option value="kuniga">Kuniga</option>
+                <option value="soatiga">Soatiga</option>
+              </select>
+            </div>
           </div>
 
-          {/* Location */}
-          <div className="input-group">
-            <label className="input-label">Manzil / Joylashuv *</label>
-            <input
-              type="text"
-              placeholder="Masalan: Toshkent sh., Mirzo Ulug'bek tumani, TTZ"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="input-field"
-              required
-            />
+          {/* Location & Telegram Username */}
+          <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "1rem" }}>
+            <div className="input-group">
+              <label className="input-label">Aniq Manzil *</label>
+              <input
+                type="text"
+                placeholder="Masalan: Yunusobod 4-mavze, 12-uy"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="input-field"
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Telegram (@username)</label>
+              <input
+                type="text"
+                placeholder="Masalan: sardor_rent"
+                value={telegramUsername}
+                onChange={(e) => setTelegramUsername(e.target.value)}
+                className="input-field"
+              />
+            </div>
           </div>
 
           {/* Image Chooser */}
           <div className="input-group">
-            <label className="input-label">E'lon rasmi (Tayyor variant yoki havola)</label>
+            <label className="input-label">E'lon rasmi (Variantni tanlang yoki havola kiriting)</label>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
               {PRESET_IMAGES.map((preset, idx) => (
                 <button
@@ -266,6 +341,21 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* VIP E'lon Checkbox */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+            <input
+              type="checkbox"
+              id="isVipCheck"
+              checked={isVip}
+              onChange={(e) => setIsVip(e.target.checked)}
+              style={{ width: "16px", height: "16px", cursor: "pointer" }}
+            />
+            <label htmlFor="isVipCheck" style={{ fontSize: "0.875rem", cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.35rem" }}>
+              <Crown size={15} color="#f59e0b" />
+              <span>VIP E'lon sifatida belgilash (Yuqorida chiqishi uchun)</span>
+            </label>
+          </div>
+
           {/* Description */}
           <div className="input-group">
             <label className="input-label">Batafsil ma'lumot / Tavsif *</label>
@@ -295,7 +385,7 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
               }}
             >
               <Send size={15} />
-              <span>E'lon saqlangach, avtomatik ravishda Telegram bot/kanalga ham yuboriladi</span>
+              <span>E'lon saqlangach, avtomatik ravishda @ijara_buyum_bot ga ham yuboriladi</span>
             </div>
           )}
 

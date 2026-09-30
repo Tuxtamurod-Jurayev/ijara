@@ -12,6 +12,8 @@ import {
   Send,
   ListFilter,
   Sparkles,
+  Heart,
+  Bot,
 } from "lucide-react";
 
 export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
@@ -23,6 +25,8 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
     activeView,
     setActiveView,
     ads,
+    favorites,
+    telegramInfo,
   } = useApp();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -81,7 +85,7 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
         </div>
 
         {/* Navigation links & Actions */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           
           {/* Home View Button */}
           <button
@@ -94,6 +98,37 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
             }}
           >
             E'lonlar
+          </button>
+
+          {/* Favorites Button */}
+          <button
+            onClick={() => setActiveView("favorites")}
+            className="btn btn-sm"
+            style={{
+              background: activeView === "favorites" ? "rgba(239, 68, 68, 0.12)" : "transparent",
+              color: activeView === "favorites" ? "var(--danger)" : "var(--text-main)",
+              border: "none",
+              position: "relative",
+              gap: "0.35rem",
+            }}
+            title="Sevimlilar ro'yxati"
+          >
+            <Heart size={16} color={favorites.length > 0 ? "var(--danger)" : "currentColor"} fill={favorites.length > 0 ? "var(--danger)" : "none"} />
+            <span className="hide-on-mobile">Sevimlilar</span>
+            {favorites.length > 0 && (
+              <span
+                style={{
+                  background: "var(--danger)",
+                  color: "#ffffff",
+                  fontSize: "0.65rem",
+                  fontWeight: 800,
+                  borderRadius: "var(--radius-full)",
+                  padding: "0.1rem 0.4rem",
+                }}
+              >
+                {favorites.length}
+              </span>
+            )}
           </button>
 
           {/* Telegram Bot Button */}
@@ -270,6 +305,33 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                         Mening e'lonlarim
                       </span>
                       <span className="badge badge-primary">{userAdsCount}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveView("favorites");
+                        setDropdownOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "0.5rem 0.75rem",
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-main)",
+                        borderRadius: "var(--radius-sm)",
+                        cursor: "pointer",
+                        fontSize: "0.85rem",
+                      }}
+                      className="btn-secondary"
+                    >
+                      <span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                        <Heart size={16} color="var(--danger)" />
+                        Sevimlilar
+                      </span>
+                      <span className="badge badge-danger">{favorites.length}</span>
                     </button>
                   </div>
 
