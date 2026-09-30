@@ -29,7 +29,7 @@ export const DEFAULT_TELEGRAM_CONFIG = {
   adminTelegramUsername: "Perfektum_1997",
   chatId: "365446274", // Target admin directly by default
   autoSend: true,
-  webAppUrl: "https://ijara-nu.vercel.app",
+  webAppUrl: "https://ijara-gold.vercel.app",
 };
 
 export const INITIAL_USERS = [

@@ -23,7 +23,7 @@ const ADMIN_ID = 365446274;
 const ADMIN_USERNAME = "perfektum_1997";
 
 // Default or persisted Web App URL
-let WEB_APP_URL = process.env.WEB_APP_URL || "https://ijara-nu.vercel.app";
+let WEB_APP_URL = process.env.WEB_APP_URL || "https://ijara-gold.vercel.app";
 
 try {
   if (fs.existsSync(CONFIG_FILE)) {
