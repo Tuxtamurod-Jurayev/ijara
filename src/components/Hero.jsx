@@ -2,41 +2,35 @@ import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { CATEGORIES, REGIONS, RENTAL_DURATIONS, ROOM_OPTIONS } from "../data/initialData";
 import {
-  Search,
-  Building,
-  Home,
-  Car,
-  Briefcase,
-  Cpu,
-  LayoutGrid,
-  ArrowUpDown,
-  Sparkles,
-  ShieldCheck,
-  Zap,
-  MapPin,
-  Clock,
-  SlidersHorizontal,
-  DollarSign,
-  X,
-  Bot,
-  ExternalLink,
-} from "lucide-react";
+  IconSearch,
+  IconBuilding,
+  IconHouse,
+  IconCar,
+  IconBriefcase,
+  IconCpu,
+  IconGrid,
+  IconSliders,
+  IconX,
+  IconZap,
+  IconShield,
+  IconTelegram,
+  IconExternalLink,
+} from "./icons";
 
-// Icon mapping helper
-const getCategoryIcon = (iconName, size = 18) => {
-  switch (iconName) {
-    case "Building":
-      return <Building size={size} />;
-    case "Home":
-      return <Home size={size} />;
-    case "Car":
-      return <Car size={size} />;
-    case "Briefcase":
-      return <Briefcase size={size} />;
-    case "Cpu":
-      return <Cpu size={size} />;
+const getCategoryIcon = (id, size = 16) => {
+  switch (id) {
+    case "kvartira":
+      return <IconBuilding size={size} />;
+    case "hovli":
+      return <IconHouse size={size} />;
+    case "avto":
+      return <IconCar size={size} />;
+    case "ofis":
+      return <IconBriefcase size={size} />;
+    case "texnika":
+      return <IconCpu size={size} />;
     default:
-      return <LayoutGrid size={size} />;
+      return <IconGrid size={size} />;
   }
 };
 
@@ -88,111 +82,85 @@ export const Hero = () => {
   return (
     <div
       style={{
-        padding: "2rem 0 1.5rem",
-        background: "radial-gradient(circle at 50% 0%, var(--primary-light) 0%, transparent 65%)",
+        padding: "1.75rem 0 1.25rem",
+        background: "radial-gradient(circle at 50% 0%, var(--primary-light) 0%, transparent 60%)",
         borderBottom: "1px solid var(--border)",
-        marginBottom: "2rem",
+        marginBottom: "1.75rem",
       }}
     >
       <div className="container">
-        {/* Telegram WebApp Greeting if inside Telegram */}
+        {/* Telegram WebApp Notice */}
         {telegramInfo.isInsideTelegram && (
           <div
             style={{
-              maxWidth: "880px",
+              maxWidth: "840px",
               margin: "0 auto 1.25rem",
-              background: "rgba(0, 136, 204, 0.1)",
-              border: "1px solid rgba(0, 136, 204, 0.3)",
-              borderRadius: "var(--radius-lg)",
-              padding: "0.75rem 1.25rem",
+              background: "rgba(0, 136, 204, 0.08)",
+              border: "1px solid rgba(0, 136, 204, 0.25)",
+              borderRadius: "var(--radius-md)",
+              padding: "0.6rem 1rem",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: "0.75rem",
+              fontSize: "0.85rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-              <Bot size={20} color="#0088cc" />
-              <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-main)" }}>
-                Telegram Web App orqali ulandingiz!
-              </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <IconTelegram size={18} color="#0088cc" />
+              <span style={{ fontWeight: 600 }}>Telegram Web App orqali ishlamoqda</span>
             </div>
             <a
               href="https://t.me/ijara_buyum_bot"
               target="_blank"
               rel="noreferrer"
-              style={{ fontSize: "0.8rem", color: "#0088cc", display: "flex", alignItems: "center", gap: "0.3rem", textDecoration: "none", fontWeight: 600 }}
+              style={{ color: "#0088cc", display: "flex", alignItems: "center", gap: "0.25rem", textDecoration: "none", fontWeight: 700, fontSize: "0.8rem" }}
             >
               <span>@ijara_buyum_bot</span>
-              <ExternalLink size={13} />
+              <IconExternalLink size={12} />
             </a>
           </div>
         )}
 
-        {/* Hero Title */}
-        <div style={{ textAlign: "center", maxWidth: "800px", margin: "0 auto 1.75rem" }}>
-          <div
-            className="badge badge-primary"
-            style={{
-              padding: "0.35rem 0.85rem",
-              marginBottom: "0.75rem",
-              fontSize: "0.85rem",
-              borderRadius: "var(--radius-full)",
-            }}
-          >
-            <Sparkles size={15} />
-            <span>O'zbekistonda №1 Zamonaviy Ijara Portali & Telegram Bot</span>
-          </div>
-
+        {/* Minimalist Heading */}
+        <div style={{ textAlign: "center", maxWidth: "720px", margin: "0 auto 1.5rem" }}>
           <h1
             style={{
-              fontSize: "clamp(1.85rem, 3.8vw, 2.75rem)",
+              fontSize: "clamp(1.75rem, 3.5vw, 2.35rem)",
               fontWeight: "800",
               lineHeight: 1.25,
-              letterSpacing: "-0.03em",
-              marginBottom: "0.75rem",
+              letterSpacing: "-0.025em",
+              marginBottom: "0.5rem",
             }}
           >
-            Kvartira, Uy, Avtomobil yoki Jihozlarni{" "}
-            <span
-              style={{
-                color: "var(--primary)",
-                background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              To'g'ridan-to'g'ri Egasidan
-            </span>{" "}
-            Ijaraga Oling
+            Ijaraga Oling va Berish{" "}
+            <span style={{ color: "var(--primary)" }}>Oson</span>
           </h1>
 
-          <p style={{ fontSize: "1rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
-            Airbnb va OLX kabi to'liq qulay filtrlar, xavfsiz aloqa va Telegram bot orqali tezkor boshqaruv.
+          <p style={{ fontSize: "0.95rem", color: "var(--text-muted)" }}>
+            Uy-joy, transport va jihozlarni to'g'ridan-to'g'ri egasidan ijaraga oling.
           </p>
         </div>
 
-        {/* Main Search & Comprehensive Filter Bar */}
+        {/* Minimalist Filter Bar */}
         <div
           style={{
-            maxWidth: "960px",
-            margin: "0 auto 1.5rem",
+            maxWidth: "920px",
+            margin: "0 auto 1.25rem",
             background: "var(--bg-card)",
-            padding: "1rem",
+            padding: "0.75rem",
             borderRadius: "var(--radius-xl)",
-            boxShadow: "var(--shadow-lg)",
+            boxShadow: "var(--shadow-md)",
             border: "1px solid var(--border)",
           }}
         >
-          {/* Top Row: Search + Region + Sort + Filter Toggle */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem", alignItems: "center" }}>
-            {/* Search query input */}
-            <div style={{ position: "relative", flex: "1 1 260px" }}>
-              <Search
-                size={18}
+          {/* Main search row */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
+            <div style={{ position: "relative", flex: "1 1 240px" }}>
+              <IconSearch
+                size={16}
                 style={{
                   position: "absolute",
-                  left: "1rem",
+                  left: "0.85rem",
                   top: "50%",
                   transform: "translateY(-50%)",
                   color: "var(--text-muted)",
@@ -200,26 +168,30 @@ export const Hero = () => {
               />
               <input
                 type="text"
-                placeholder="Qidiruv: Masalan 'Chilonzor', 'Tracker', 'Chorvoq'..."
+                placeholder="Qidiruv (nomi, tuman, dacha, cobalt)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="input-field"
                 style={{
-                  paddingLeft: "2.75rem",
-                  borderRadius: "var(--radius-lg)",
+                  paddingLeft: "2.5rem",
+                  paddingTop: "0.6rem",
+                  paddingBottom: "0.6rem",
+                  borderRadius: "var(--radius-md)",
+                  fontSize: "0.875rem",
                 }}
               />
             </div>
 
-            {/* Region Selector */}
-            <div style={{ position: "relative", flex: "1 1 180px" }}>
+            {/* Region select */}
+            <div style={{ flex: "1 1 170px" }}>
               <select
                 value={activeRegion}
                 onChange={(e) => setActiveRegion(e.target.value)}
                 className="select-field"
                 style={{
-                  borderRadius: "var(--radius-lg)",
-                  fontSize: "0.875rem",
+                  padding: "0.6rem 0.8rem",
+                  borderRadius: "var(--radius-md)",
+                  fontSize: "0.85rem",
                 }}
               >
                 {REGIONS.map((r) => (
@@ -230,20 +202,21 @@ export const Hero = () => {
               </select>
             </div>
 
-            {/* Sort Select */}
-            <div style={{ flex: "0 1 170px" }}>
+            {/* Sort select */}
+            <div style={{ flex: "0 1 160px" }}>
               <select
                 value={priceSort}
                 onChange={(e) => setPriceSort(e.target.value)}
                 className="select-field"
                 style={{
-                  borderRadius: "var(--radius-lg)",
-                  fontSize: "0.875rem",
+                  padding: "0.6rem 0.8rem",
+                  borderRadius: "var(--radius-md)",
+                  fontSize: "0.85rem",
                 }}
               >
-                <option value="default">Saralash: Yangilari</option>
-                <option value="asc">Narx: Arzondan qimmatga</option>
-                <option value="desc">Narx: Qimmatdan arzonga</option>
+                <option value="default">Saralash: Yangilar</option>
+                <option value="asc">Narx: Arzondan</option>
+                <option value="desc">Narx: Qimmatdan</option>
               </select>
             </div>
 
@@ -251,46 +224,35 @@ export const Hero = () => {
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               className={`btn btn-sm ${showAdvanced ? "btn-primary" : "btn-secondary"}`}
-              style={{ padding: "0.65rem 1rem", borderRadius: "var(--radius-lg)", gap: "0.45rem" }}
+              style={{ padding: "0.6rem 0.9rem", borderRadius: "var(--radius-md)", gap: "0.4rem" }}
             >
-              <SlidersHorizontal size={16} />
-              <span>Filtrlar</span>
+              <IconSliders size={14} />
+              <span>Filtr</span>
               {hasActiveFilters && (
-                <span
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    backgroundColor: showAdvanced ? "#ffffff" : "var(--primary)",
-                  }}
-                />
+                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#fff" }} />
               )}
             </button>
           </div>
 
-          {/* Expandable Advanced Filters Row (Duration, Rooms, Price Range) */}
+          {/* Advanced toggle row */}
           {showAdvanced && (
             <div
               style={{
-                marginTop: "1rem",
-                paddingTop: "1rem",
+                marginTop: "0.75rem",
+                paddingTop: "0.75rem",
                 borderTop: "1px solid var(--border)",
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "0.75rem",
+                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                gap: "0.5rem",
                 alignItems: "center",
               }}
             >
-              {/* Rental Duration */}
               <div>
-                <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "0.25rem" }}>
-                  Ijara muddati:
-                </label>
                 <select
                   value={activeDuration}
                   onChange={(e) => setActiveDuration(e.target.value)}
                   className="select-field"
-                  style={{ fontSize: "0.85rem", padding: "0.55rem 0.75rem" }}
+                  style={{ fontSize: "0.82rem", padding: "0.5rem 0.7rem" }}
                 >
                   {RENTAL_DURATIONS.map((d) => (
                     <option key={d.id} value={d.id}>{d.label}</option>
@@ -298,16 +260,12 @@ export const Hero = () => {
                 </select>
               </div>
 
-              {/* Rooms filter */}
               <div>
-                <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "0.25rem" }}>
-                  Xonalar soni:
-                </label>
                 <select
                   value={activeRooms}
                   onChange={(e) => setActiveRooms(e.target.value)}
                   className="select-field"
-                  style={{ fontSize: "0.85rem", padding: "0.55rem 0.75rem" }}
+                  style={{ fontSize: "0.82rem", padding: "0.5rem 0.7rem" }}
                 >
                   {ROOM_OPTIONS.map((r) => (
                     <option key={r.id} value={r.id}>{r.label}</option>
@@ -315,59 +273,50 @@ export const Hero = () => {
                 </select>
               </div>
 
-              {/* Min Price */}
               <div>
-                <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "0.25rem" }}>
-                  Min narx:
-                </label>
                 <input
                   type="number"
-                  placeholder="0"
+                  placeholder="Min narx"
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                   className="input-field"
-                  style={{ fontSize: "0.85rem", padding: "0.55rem 0.75rem" }}
+                  style={{ fontSize: "0.82rem", padding: "0.5rem 0.7rem" }}
                 />
               </div>
 
-              {/* Max Price */}
               <div>
-                <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "0.25rem" }}>
-                  Max narx:
-                </label>
                 <input
                   type="number"
-                  placeholder="Cheksiz"
+                  placeholder="Max narx"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                   className="input-field"
-                  style={{ fontSize: "0.85rem", padding: "0.55rem 0.75rem" }}
+                  style={{ fontSize: "0.82rem", padding: "0.5rem 0.7rem" }}
                 />
               </div>
 
-              {/* Reset button */}
-              <div style={{ display: "flex", alignItems: "flex-end", height: "100%" }}>
+              <div>
                 <button
                   type="button"
                   onClick={resetAllFilters}
                   className="btn btn-secondary btn-sm"
-                  style={{ width: "100%", padding: "0.6rem", fontSize: "0.85rem", gap: "0.35rem" }}
+                  style={{ width: "100%", padding: "0.5rem", fontSize: "0.8rem", gap: "0.3rem" }}
                 >
-                  <X size={15} />
-                  <span>Filtrlarni tozalash</span>
+                  <IconX size={13} />
+                  <span>Tozalash</span>
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Categories Chips */}
+        {/* Minimal Category Chips */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "0.65rem",
+            gap: "0.5rem",
             flexWrap: "wrap",
           }}
         >
@@ -382,44 +331,17 @@ export const Hero = () => {
                   background: isActive ? "var(--primary-gradient)" : "var(--bg-card)",
                   color: isActive ? "#ffffff" : "var(--text-main)",
                   border: isActive ? "1px solid transparent" : "1px solid var(--border)",
-                  boxShadow: isActive ? "0 4px 14px rgba(59, 130, 246, 0.3)" : "var(--shadow-sm)",
-                  padding: "0.55rem 1.1rem",
+                  padding: "0.45rem 0.9rem",
                   borderRadius: "var(--radius-full)",
-                  transition: "all var(--transition-smooth)",
+                  fontSize: "0.85rem",
+                  gap: "0.4rem",
                 }}
               >
-                {getCategoryIcon(cat.icon, 16)}
+                {getCategoryIcon(cat.id, 14)}
                 <span>{cat.name}</span>
               </button>
             );
           })}
-        </div>
-
-        {/* Micro Stats Banner */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "2.5rem",
-            marginTop: "1.5rem",
-            color: "var(--text-muted)",
-            fontSize: "0.85rem",
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-            <Zap size={16} color="var(--primary)" />
-            <span>Faol e'lonlar: <strong style={{ color: "var(--text-main)" }}>{ads.length} ta</strong></span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-            <ShieldCheck size={16} color="var(--success)" />
-            <span>Foydalanuvchilar: <strong style={{ color: "var(--text-main)" }}>{users.length} nafar</strong></span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-            <Bot size={16} color="#0088cc" />
-            <span>Telegram Bot: <strong style={{ color: "var(--text-main)" }}>@ijara_buyum_bot</strong></span>
-          </div>
         </div>
 
       </div>

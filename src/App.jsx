@@ -19,8 +19,7 @@ import {
   Search,
   PlusCircle,
   RotateCcw,
-  Crown,
-} from "lucide-react";
+} from "./components/icons";
 
 // Inner Content Component to consume useApp()
 const MainContent = () => {

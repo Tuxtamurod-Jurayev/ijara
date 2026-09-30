@@ -1,6 +1,6 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
-import { X, Trash2, ExternalLink, Calendar, MapPin, Tag } from "lucide-react";
+import { X, Trash2, ExternalLink, Calendar, MapPin, Tag } from "./icons";
 
 export const UserAdsModal = ({ user, onClose, onSelectAd }) => {
   const { ads, deleteAd, currentUser } = useApp();

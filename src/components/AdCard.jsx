@@ -1,18 +1,15 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
 import {
-  MapPin,
-  Eye,
-  Calendar,
-  Phone,
-  Trash2,
-  ExternalLink,
-  Tag,
-  Heart,
-  Camera,
-  Crown,
-  Send,
-} from "lucide-react";
+  IconMapPin,
+  IconEye,
+  IconTrash,
+  IconHeart,
+  IconCamera,
+  IconCrown,
+  IconTelegram,
+  IconPhone,
+} from "./icons";
 
 export const AdCard = ({ ad, onSelectAd }) => {
   const { currentUser, deleteAd, favorites, toggleFavorite } = useApp();
@@ -37,16 +34,16 @@ export const AdCard = ({ ad, onSelectAd }) => {
         height: "100%",
         position: "relative",
         cursor: "pointer",
-        border: ad.isVip ? "1.5px solid rgba(245, 158, 11, 0.4)" : "1px solid var(--border)",
+        borderRadius: "var(--radius-lg)",
       }}
       onClick={() => onSelectAd(ad)}
     >
-      {/* Ad Image Container */}
+      {/* Image Container */}
       <div
         style={{
           position: "relative",
           width: "100%",
-          paddingTop: "62%",
+          paddingTop: "60%",
           overflow: "hidden",
           backgroundColor: "var(--bg-card-subtle)",
         }}
@@ -61,32 +58,31 @@ export const AdCard = ({ ad, onSelectAd }) => {
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            transition: "transform 400ms ease",
+            transition: "transform 350ms ease",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.06)")}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.04)")}
           onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
           loading="lazy"
         />
 
-        {/* Badges on Top Left (Category & VIP) */}
+        {/* Top Badges */}
         <div
           style={{
             position: "absolute",
-            top: "0.75rem",
-            left: "0.75rem",
+            top: "0.65rem",
+            left: "0.65rem",
             display: "flex",
-            flexWrap: "wrap",
-            gap: "0.4rem",
+            gap: "0.35rem",
             zIndex: 2,
           }}
         >
           <span
             className="badge"
             style={{
-              backdropFilter: "blur(8px)",
               background: "rgba(15, 23, 42, 0.8)",
+              backdropFilter: "blur(6px)",
               color: "#ffffff",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
+              fontSize: "0.72rem",
               textTransform: "capitalize",
             }}
           >
@@ -99,25 +95,27 @@ export const AdCard = ({ ad, onSelectAd }) => {
               style={{
                 background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
                 color: "#ffffff",
+                fontSize: "0.7rem",
                 fontWeight: 800,
-                fontSize: "0.72rem",
-                boxShadow: "0 2px 8px rgba(245, 158, 11, 0.4)",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.25rem",
               }}
             >
-              <Crown size={12} /> VIP
+              <IconCrown size={11} /> VIP
             </span>
           )}
         </div>
 
-        {/* Top Right: Favorite Button & Photo Count */}
+        {/* Favorite & Photo Count */}
         <div
           style={{
             position: "absolute",
-            top: "0.75rem",
-            right: "0.75rem",
+            top: "0.65rem",
+            right: "0.65rem",
             display: "flex",
             alignItems: "center",
-            gap: "0.4rem",
+            gap: "0.35rem",
             zIndex: 2,
           }}
         >
@@ -125,18 +123,16 @@ export const AdCard = ({ ad, onSelectAd }) => {
             <span
               style={{
                 background: "rgba(15, 23, 42, 0.75)",
-                color: "#ffffff",
-                backdropFilter: "blur(6px)",
-                padding: "0.2rem 0.5rem",
+                color: "#fff",
+                padding: "0.15rem 0.45rem",
                 borderRadius: "var(--radius-full)",
-                fontSize: "0.72rem",
+                fontSize: "0.7rem",
                 display: "flex",
                 alignItems: "center",
                 gap: "0.25rem",
-                fontWeight: 600,
               }}
             >
-              <Camera size={11} /> {photoCount}
+              <IconCamera size={11} /> {photoCount}
             </span>
           )}
 
@@ -147,24 +143,21 @@ export const AdCard = ({ ad, onSelectAd }) => {
               toggleFavorite(ad.id);
             }}
             style={{
-              width: "32px",
-              height: "32px",
+              width: "30px",
+              height: "30px",
               borderRadius: "50%",
               background: "rgba(15, 23, 42, 0.75)",
-              backdropFilter: "blur(8px)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
+              backdropFilter: "blur(6px)",
+              border: "none",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              transition: "transform 150ms ease",
             }}
-            onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.88)")}
-            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            title={isFavorite ? "Sevimlilardan o'chirish" : "Sevimlilarga qo'shish"}
+            title="Sevimlilar"
           >
-            <Heart
-              size={16}
+            <IconHeart
+              size={15}
               color={isFavorite ? "#ef4444" : "#ffffff"}
               fill={isFavorite ? "#ef4444" : "none"}
             />
@@ -175,21 +168,19 @@ export const AdCard = ({ ad, onSelectAd }) => {
         <div
           style={{
             position: "absolute",
-            bottom: "0.75rem",
-            right: "0.75rem",
+            bottom: "0.65rem",
+            right: "0.65rem",
             background: "rgba(15, 23, 42, 0.88)",
-            backdropFilter: "blur(10px)",
-            padding: "0.35rem 0.75rem",
+            backdropFilter: "blur(8px)",
+            padding: "0.3rem 0.65rem",
             borderRadius: "var(--radius-md)",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
             color: "#ffffff",
-            fontWeight: "800",
-            fontSize: "1rem",
-            boxShadow: "var(--shadow-md)",
+            fontWeight: 800,
+            fontSize: "0.95rem",
           }}
         >
           {formatPrice(ad.price, ad.currency)}
-          <span style={{ fontSize: "0.75rem", fontWeight: "500", opacity: 0.85, marginLeft: "4px" }}>
+          <span style={{ fontSize: "0.72rem", fontWeight: "500", opacity: 0.85, marginLeft: "3px" }}>
             / {ad.period}
           </span>
         </div>
@@ -198,7 +189,7 @@ export const AdCard = ({ ad, onSelectAd }) => {
       {/* Card Content */}
       <div
         style={{
-          padding: "1.25rem",
+          padding: "1rem",
           display: "flex",
           flexDirection: "column",
           flexGrow: 1,
@@ -209,10 +200,10 @@ export const AdCard = ({ ad, onSelectAd }) => {
           {/* Title */}
           <h3
             style={{
-              fontSize: "1.05rem",
+              fontSize: "1rem",
               fontWeight: "700",
-              lineHeight: 1.4,
-              marginBottom: "0.5rem",
+              lineHeight: 1.35,
+              marginBottom: "0.45rem",
               color: "var(--text-main)",
               display: "-webkit-box",
               WebkitLineClamp: 2,
@@ -224,38 +215,31 @@ export const AdCard = ({ ad, onSelectAd }) => {
             {ad.title}
           </h3>
 
-          {/* Location & Region */}
+          {/* Location */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "0.35rem",
+              gap: "0.3rem",
               color: "var(--text-muted)",
-              fontSize: "0.85rem",
-              marginBottom: "0.75rem",
+              fontSize: "0.82rem",
+              marginBottom: "0.65rem",
             }}
           >
-            <MapPin size={15} style={{ flexShrink: 0, color: "var(--primary)" }} />
+            <IconMapPin size={13} style={{ flexShrink: 0, color: "var(--primary)" }} />
             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {ad.region && ad.region !== "Toshkent shahri" ? `${ad.region}, ` : ""}{ad.location}
+              {ad.location}
             </span>
           </div>
 
           {/* Features pills */}
           {ad.features && ad.features.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "0.4rem",
-                marginBottom: "1rem",
-              }}
-            >
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.75rem" }}>
               {ad.rooms && (
                 <span
                   style={{
-                    fontSize: "0.75rem",
-                    padding: "0.2rem 0.5rem",
+                    fontSize: "0.72rem",
+                    padding: "0.15rem 0.45rem",
                     background: "var(--primary-light)",
                     color: "var(--primary)",
                     fontWeight: 700,
@@ -265,64 +249,40 @@ export const AdCard = ({ ad, onSelectAd }) => {
                   {ad.rooms} xona
                 </span>
               )}
-              {ad.features.slice(0, 3).map((f, i) => (
+              {ad.features.slice(0, 2).map((f, i) => (
                 <span
                   key={i}
                   style={{
-                    fontSize: "0.75rem",
-                    padding: "0.2rem 0.5rem",
+                    fontSize: "0.72rem",
+                    padding: "0.15rem 0.45rem",
                     background: "var(--bg-card-subtle)",
                     color: "var(--text-muted)",
                     borderRadius: "var(--radius-sm)",
-                    border: "1px solid var(--border)",
                   }}
                 >
                   {f}
                 </span>
               ))}
-              {ad.features.length > 3 && (
-                <span style={{ fontSize: "0.75rem", color: "var(--text-light)", padding: "0.2rem" }}>
-                  +{ad.features.length - 3}
-                </span>
-              )}
             </div>
           )}
         </div>
 
-        {/* Card Footer: Poster name & Actions */}
+        {/* Footer */}
         <div
           style={{
             borderTop: "1px solid var(--border)",
-            paddingTop: "0.85rem",
-            marginTop: "0.5rem",
+            paddingTop: "0.75rem",
+            marginTop: "0.35rem",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-            <div
-              style={{
-                width: "26px",
-                height: "26px",
-                borderRadius: "50%",
-                background: "var(--primary-light)",
-                color: "var(--primary)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "0.75rem",
-                fontWeight: 700,
-              }}
-            >
-              {ad.userName ? ad.userName.charAt(0) : "U"}
-            </div>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", maxWidth: "110px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {ad.userName}
-            </div>
+          <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {ad.userName}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
             {ad.telegramUsername && (
               <a
                 href={`https://t.me/${ad.telegramUsername}`}
@@ -330,8 +290,8 @@ export const AdCard = ({ ad, onSelectAd }) => {
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  width: "28px",
-                  height: "28px",
+                  width: "26px",
+                  height: "26px",
                   borderRadius: "50%",
                   background: "rgba(0, 136, 204, 0.12)",
                   color: "#0088cc",
@@ -340,23 +300,14 @@ export const AdCard = ({ ad, onSelectAd }) => {
                   justifyContent: "center",
                   textDecoration: "none",
                 }}
-                title={`Telegramda yozish (@${ad.telegramUsername})`}
+                title={`Telegram (@${ad.telegramUsername})`}
               >
-                <Send size={13} />
+                <IconTelegram size={13} />
               </a>
             )}
 
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.25rem",
-                fontSize: "0.75rem",
-                color: "var(--text-light)",
-              }}
-              title="Ko'rishlar soni"
-            >
-              <Eye size={13} />
+            <span style={{ display: "flex", alignItems: "center", gap: "0.2rem", fontSize: "0.75rem", color: "var(--text-light)" }}>
+              <IconEye size={12} />
               {ad.viewsCount || 0}
             </span>
 
@@ -364,15 +315,14 @@ export const AdCard = ({ ad, onSelectAd }) => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (window.confirm("Haqiqatan ham bu e'lonni o'chirmoqchimisiz?")) {
+                  if (window.confirm("Bu e'lonni o'chirmoqchimisiz?")) {
                     deleteAd(ad.id);
                   }
                 }}
                 className="btn btn-sm btn-danger"
-                style={{ padding: "0.3rem 0.5rem", fontSize: "0.75rem" }}
-                title="E'lonni o'chirish"
+                style={{ padding: "0.25rem 0.45rem", fontSize: "0.7rem" }}
               >
-                <Trash2 size={13} />
+                <IconTrash size={12} />
               </button>
             )}
           </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
 import { AdCard } from "./AdCard";
-import { Heart, ArrowLeft, Search } from "lucide-react";
+import { Heart, ArrowLeft, Search } from "./icons";
 
 export const FavoritesView = ({ onSelectAd }) => {
   const { ads, favorites, setActiveView } = useApp();

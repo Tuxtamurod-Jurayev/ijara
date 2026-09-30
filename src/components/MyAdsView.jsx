@@ -1,7 +1,13 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
 import { AdCard } from "./AdCard";
-import { PlusCircle, ArrowLeft, Layers } from "lucide-react";
+import {
+  IconPlusCircle as PlusCircle,
+  IconArrowLeft as ArrowLeft,
+  IconLayers as Layers,
+} from "./icons";
+
+
 
 export const MyAdsView = ({ onOpenCreateAd, onSelectAd }) => {
   const { currentUser, ads, setActiveView } = useApp();

@@ -2,17 +2,12 @@ import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { REGIONS } from "../data/initialData";
 import {
-  X,
-  Upload,
-  Plus,
-  DollarSign,
-  MapPin,
-  FileText,
-  Tag,
-  Sparkles,
-  Send,
-  Crown,
-} from "lucide-react";
+  IconX as X,
+  IconPlusCircle as Plus,
+  IconCrown as Crown,
+  IconSend as Send,
+} from "./icons";
+
 
 // Curated high quality presets for quick testing
 const PRESET_IMAGES = [

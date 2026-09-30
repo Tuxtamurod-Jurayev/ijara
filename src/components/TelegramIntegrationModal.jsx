@@ -9,8 +9,7 @@ import {
   ExternalLink,
   RefreshCw,
   Sparkles,
-  MessageSquare,
-} from "lucide-react";
+} from "./icons";
 
 export const TelegramIntegrationModal = ({ isOpen, onClose }) => {
   const { telegramConfig, setTelegramConfig, showToast } = useApp();

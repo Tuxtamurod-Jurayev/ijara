@@ -1,6 +1,6 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
-import { Home, Send, Shield, Heart } from "lucide-react";
+import { Home, Send, Shield, Heart } from "./icons";
 
 export const Footer = ({ onOpenTelegram }) => {
   const { setActiveView } = useApp();

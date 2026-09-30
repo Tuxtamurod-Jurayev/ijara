@@ -1,16 +1,12 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import {
-  X,
-  User,
-  Lock,
-  Phone,
-  UserCheck,
-  Shield,
-  Eye,
-  EyeOff,
-  Sparkles,
-} from "lucide-react";
+  IconX as X,
+  IconEye as Eye,
+  IconEyeOff as EyeOff,
+  IconCheck as UserCheck,
+} from "./icons";
+
 
 export const AuthModal = ({ isOpen, onClose, defaultMode = "login" }) => {
   const { loginUser, registerUser, showToast } = useApp();

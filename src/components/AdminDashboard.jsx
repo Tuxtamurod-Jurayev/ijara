@@ -3,23 +3,23 @@ import { useApp } from "../context/AppContext";
 import { UserAdsModal } from "./UserAdsModal";
 import { sendAdToTelegram, getRecentChats } from "../utils/telegram";
 import {
-  Users,
-  Layers,
-  Building,
-  Car,
-  Trash2,
-  Eye,
-  Send,
-  Shield,
-  Search,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
-  PlusCircle,
-  Settings,
-  Bot,
-  RefreshCw,
-} from "lucide-react";
+  IconUser as Users,
+  IconLayers as Layers,
+  IconBuilding as Building,
+  IconCar as Car,
+  IconTrash as Trash2,
+  IconEye as Eye,
+  IconSend as Send,
+  IconShield as Shield,
+  IconSearch as Search,
+  IconCircleCheck as CheckCircle2,
+  IconExternalLink as ExternalLink,
+  IconPlusCircle as PlusCircle,
+  IconSettings as Settings,
+  IconBot as Bot,
+  IconRefresh as RefreshCw,
+} from "./icons";
+
 
 
 export const AdminDashboard = ({ onSelectAd }) => {
@@ -154,16 +154,21 @@ export const AdminDashboard = ({ onSelectAd }) => {
             <Shield size={28} />
           </div>
           <div>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "0.25rem" }}>
-              Administrator Boshqaruv Paneli
-            </h1>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-              Foydalanuvchilar, e'lonlar statistikasi va Telegram bot nazorati
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.25rem" }}>
+              <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)" }}>
+                Administrator Boshqaruv Paneli
+              </h1>
+              <span className="badge badge-primary" style={{ fontSize: "0.75rem", padding: "0.25rem 0.6rem" }}>
+                To'xtamurod Jo'rayev (@Perfektum_1997)
+              </span>
+            </div>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
+              Telegram ID: <b>365446274</b> • Foydalanuvchilar, e'lonlar va Telegram bot nazorati
             </p>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <span className="badge badge-success" style={{ padding: "0.45rem 0.85rem", fontSize: "0.85rem" }}>
             <CheckCircle2 size={15} /> Tizim holati: Faol
           </span>

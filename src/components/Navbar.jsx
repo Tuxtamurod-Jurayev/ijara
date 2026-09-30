@@ -1,20 +1,18 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import {
-  Home,
-  PlusCircle,
-  LogIn,
-  LogOut,
-  Shield,
-  Moon,
-  Sun,
-  User,
-  Send,
-  ListFilter,
-  Sparkles,
-  Heart,
-  Bot,
-} from "lucide-react";
+  IconHome,
+  IconPlusCircle,
+  IconLogIn,
+  IconLogOut,
+  IconShield,
+  IconMoon,
+  IconSun,
+  IconSend,
+  IconList,
+  IconHeart,
+  IconBot,
+} from "./icons";
 
 export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
   const {
@@ -31,98 +29,95 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Count ads posted by current user
   const userAdsCount = currentUser
     ? ads.filter((a) => a.userId === currentUser.id).length
     : 0;
 
   return (
     <header className="glass-nav">
-      <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "72px" }}>
+      <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "68px" }}>
         
-        {/* Brand Logo */}
+        {/* Minimalist Logo */}
         <div
           onClick={() => setActiveView("home")}
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "0.65rem",
+            gap: "0.6rem",
             cursor: "pointer",
             userSelect: "none",
           }}
         >
           <div
             style={{
-              width: "42px",
-              height: "42px",
-              borderRadius: "12px",
-              background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+              width: "38px",
+              height: "38px",
+              borderRadius: "10px",
+              background: "var(--primary-gradient)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               color: "#ffffff",
-              boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
+              boxShadow: "0 2px 10px rgba(59, 130, 246, 0.3)",
             }}
           >
-            <Home size={22} strokeWidth={2.4} />
+            <IconHome size={19} />
           </div>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <span style={{ fontSize: "1.25rem", fontWeight: "800", letterSpacing: "-0.02em" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+              <span style={{ fontSize: "1.2rem", fontWeight: "800", letterSpacing: "-0.02em" }}>
                 Ijara<span style={{ color: "var(--primary)" }}>Bozor</span>
               </span>
               <span
                 className="badge badge-primary"
-                style={{ fontSize: "0.65rem", padding: "0.15rem 0.45rem", fontWeight: 700 }}
+                style={{ fontSize: "0.65rem", padding: "0.1rem 0.4rem", fontWeight: 700 }}
               >
                 UZ
               </span>
             </div>
-            <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "-2px" }}>
-              Ishonchli ijara platformasi
-            </p>
           </div>
         </div>
 
-        {/* Navigation links & Actions */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        {/* Action Controls */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
           
-          {/* Home View Button */}
+          {/* E'lonlar */}
           <button
             onClick={() => setActiveView("home")}
-            className={`btn btn-sm ${activeView === "home" ? "btn-secondary" : ""}`}
+            className="btn btn-sm"
             style={{
               background: activeView === "home" ? "var(--primary-light)" : "transparent",
               color: activeView === "home" ? "var(--primary)" : "var(--text-main)",
               border: "none",
+              fontWeight: 600,
             }}
           >
             E'lonlar
           </button>
 
-          {/* Favorites Button */}
+          {/* Favorites */}
           <button
             onClick={() => setActiveView("favorites")}
             className="btn btn-sm"
             style={{
-              background: activeView === "favorites" ? "rgba(239, 68, 68, 0.12)" : "transparent",
+              background: activeView === "favorites" ? "rgba(239, 68, 68, 0.1)" : "transparent",
               color: activeView === "favorites" ? "var(--danger)" : "var(--text-main)",
               border: "none",
-              position: "relative",
               gap: "0.35rem",
+              fontWeight: 600,
             }}
-            title="Sevimlilar ro'yxati"
+            title="Sevimlilar"
           >
-            <Heart size={16} color={favorites.length > 0 ? "var(--danger)" : "currentColor"} fill={favorites.length > 0 ? "var(--danger)" : "none"} />
+            <IconHeart size={16} color={favorites.length > 0 ? "var(--danger)" : "currentColor"} />
             <span className="hide-on-mobile">Sevimlilar</span>
             {favorites.length > 0 && (
               <span
                 style={{
                   background: "var(--danger)",
-                  color: "#ffffff",
+                  color: "#fff",
                   fontSize: "0.65rem",
-                  fontWeight: 800,
-                  borderRadius: "var(--radius-full)",
+                  fontWeight: 700,
+                  borderRadius: "999px",
                   padding: "0.1rem 0.4rem",
                 }}
               >
@@ -131,7 +126,7 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
             )}
           </button>
 
-          {/* Telegram Bot Button */}
+          {/* Telegram Bot */}
           <button
             onClick={onOpenTelegram}
             className="btn btn-sm hide-on-mobile"
@@ -139,14 +134,15 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
               background: "rgba(0, 136, 204, 0.1)",
               color: "#0088cc",
               border: "1px solid rgba(0, 136, 204, 0.25)",
+              gap: "0.35rem",
+              fontWeight: 600,
             }}
-            title="Telegram Bot integratsiyasi"
           >
-            <Send size={15} />
-            <span>Telegram Bot</span>
+            <IconSend size={14} />
+            <span>Bot</span>
           </button>
 
-          {/* Admin Panel Direct Button if logged in as admin */}
+          {/* Admin Panel Direct Button */}
           {currentUser?.role === "admin" && (
             <button
               onClick={() => setActiveView("admin")}
@@ -155,41 +151,39 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                 background: activeView === "admin" ? "var(--accent)" : "rgba(139, 92, 246, 0.12)",
                 color: activeView === "admin" ? "#ffffff" : "var(--accent)",
                 border: "1px solid rgba(139, 92, 246, 0.3)",
+                gap: "0.35rem",
+                fontWeight: 700,
               }}
             >
-              <Shield size={16} />
+              <IconShield size={14} />
               <span>Admin Panel</span>
             </button>
           )}
 
-          {/* Create Ad Button */}
+          {/* Create Ad */}
           <button
             onClick={() => {
-              if (!currentUser) {
-                onOpenAuth();
-              } else {
-                onOpenCreateAd();
-              }
+              if (!currentUser) onOpenAuth();
+              else onOpenCreateAd();
             }}
             className="btn btn-primary btn-sm"
-            style={{ gap: "0.45rem" }}
+            style={{ gap: "0.4rem", fontWeight: 700 }}
           >
-            <PlusCircle size={17} />
+            <IconPlusCircle size={15} />
             <span>E'lon berish</span>
           </button>
 
-          {/* Theme Toggle Button */}
+          {/* Theme Switch */}
           <button
             onClick={toggleTheme}
             className="btn btn-secondary btn-sm"
-            style={{ width: "38px", height: "38px", padding: 0, borderRadius: "50%" }}
-            title={theme === "light" ? "Tungi rejimga o'tish" : "Kunduzgi rejimga o'tish"}
-            aria-label="Rejimni almashtirish"
+            style={{ width: "36px", height: "36px", padding: 0, borderRadius: "50%" }}
+            title="Rejimni almashtirish"
           >
-            {theme === "light" ? <Moon size={17} /> : <Sun size={17} color="#fbbf24" />}
+            {theme === "light" ? <IconMoon size={16} /> : <IconSun size={16} color="#fbbf24" />}
           </button>
 
-          {/* User Auth Section */}
+          {/* User Dropdown / Login */}
           {currentUser ? (
             <div style={{ position: "relative" }}>
               <button
@@ -198,45 +192,44 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.35rem 0.75rem",
+                  gap: "0.45rem",
+                  padding: "0.3rem 0.75rem",
                   borderRadius: "var(--radius-full)",
                 }}
               >
                 <div
                   style={{
-                    width: "28px",
-                    height: "28px",
+                    width: "26px",
+                    height: "26px",
                     borderRadius: "50%",
                     background: currentUser.role === "admin" ? "var(--accent)" : "var(--primary)",
-                    color: "#ffffff",
+                    color: "#fff",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontWeight: 700,
-                    fontSize: "0.8rem",
+                    fontSize: "0.75rem",
                   }}
                 >
                   {currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : "U"}
                 </div>
-                <span className="hide-on-mobile" style={{ fontSize: "0.85rem", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <span className="hide-on-mobile" style={{ fontSize: "0.85rem", maxWidth: "110px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {currentUser.fullName.split(" ")[0]}
                 </span>
                 {currentUser.role === "admin" && (
-                  <span className="badge badge-warning" style={{ fontSize: "0.65rem", padding: "0.1rem 0.35rem" }}>
+                  <span className="badge badge-warning" style={{ fontSize: "0.62rem", padding: "0.1rem 0.35rem" }}>
                     Admin
                   </span>
                 )}
               </button>
 
-              {/* User Dropdown Menu */}
               {dropdownOpen && (
                 <div
                   style={{
                     position: "absolute",
                     right: 0,
                     top: "calc(100% + 8px)",
-                    width: "220px",
+                    width: "210px",
                     background: "var(--bg-card)",
                     border: "1px solid var(--border)",
                     borderRadius: "var(--radius-md)",
@@ -246,13 +239,12 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                   }}
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
-                  <div style={{ padding: "0.5rem 0.75rem", borderBottom: "1px solid var(--border)" }}>
-                    <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>{currentUser.fullName}</div>
+                  <div style={{ padding: "0.5rem 0.65rem", borderBottom: "1px solid var(--border)" }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.875rem" }}>{currentUser.fullName}</div>
                     <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>@{currentUser.username}</div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>{currentUser.phone}</div>
                   </div>
 
-                  <div style={{ padding: "0.4rem 0" }}>
+                  <div style={{ padding: "0.35rem 0" }}>
                     {currentUser.role === "admin" && (
                       <button
                         onClick={() => {
@@ -263,8 +255,8 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                           width: "100%",
                           display: "flex",
                           alignItems: "center",
-                          gap: "0.6rem",
-                          padding: "0.5rem 0.75rem",
+                          gap: "0.5rem",
+                          padding: "0.5rem 0.65rem",
                           background: "none",
                           border: "none",
                           color: "var(--accent)",
@@ -273,10 +265,9 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                           fontSize: "0.85rem",
                           fontWeight: 600,
                         }}
-                        className="btn-secondary"
                       >
-                        <Shield size={16} />
-                        Admin Dashboard
+                        <IconShield size={14} />
+                        Admin Panel
                       </button>
                     )}
 
@@ -290,7 +281,7 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        padding: "0.5rem 0.75rem",
+                        padding: "0.5rem 0.65rem",
                         background: "none",
                         border: "none",
                         color: "var(--text-main)",
@@ -298,44 +289,16 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                         cursor: "pointer",
                         fontSize: "0.85rem",
                       }}
-                      className="btn-secondary"
                     >
-                      <span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                        <ListFilter size={16} />
-                        Mening e'lonlarim
+                      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <IconList size={14} />
+                        E'lonlarim
                       </span>
                       <span className="badge badge-primary">{userAdsCount}</span>
                     </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveView("favorites");
-                        setDropdownOpen(false);
-                      }}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "0.5rem 0.75rem",
-                        background: "none",
-                        border: "none",
-                        color: "var(--text-main)",
-                        borderRadius: "var(--radius-sm)",
-                        cursor: "pointer",
-                        fontSize: "0.85rem",
-                      }}
-                      className="btn-secondary"
-                    >
-                      <span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                        <Heart size={16} color="var(--danger)" />
-                        Sevimlilar
-                      </span>
-                      <span className="badge badge-danger">{favorites.length}</span>
-                    </button>
                   </div>
 
-                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.4rem" }}>
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.35rem" }}>
                     <button
                       onClick={() => {
                         logoutUser();
@@ -345,8 +308,8 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                         width: "100%",
                         display: "flex",
                         alignItems: "center",
-                        gap: "0.6rem",
-                        padding: "0.5rem 0.75rem",
+                        gap: "0.5rem",
+                        padding: "0.5rem 0.65rem",
                         background: "none",
                         border: "none",
                         color: "var(--danger)",
@@ -356,7 +319,7 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                         fontWeight: 600,
                       }}
                     >
-                      <LogOut size={16} />
+                      <IconLogOut size={14} />
                       Chiqish
                     </button>
                   </div>
@@ -367,9 +330,9 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
             <button
               onClick={onOpenAuth}
               className="btn btn-secondary btn-sm"
-              style={{ gap: "0.45rem", fontWeight: 700 }}
+              style={{ gap: "0.4rem", fontWeight: 700 }}
             >
-              <LogIn size={16} />
+              <IconLogIn size={15} />
               <span>Kirish</span>
             </button>
           )}

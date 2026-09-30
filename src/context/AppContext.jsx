@@ -104,7 +104,7 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem("ijara_telegram_config", JSON.stringify(telegramConfig));
   }, [telegramConfig]);
 
-  // Check Telegram WebApp on launch & Auto-detect user
+  // Check Telegram WebApp on launch & Auto-detect user (Master Admin recognition)
   useEffect(() => {
     const tg = initTelegramWebApp();
     if (tg.isInsideTelegram) {
@@ -113,18 +113,35 @@ export const AppProvider = ({ children }) => {
         user: tg.user,
       });
 
-      // Auto login or prefill session from Telegram user
-      if (tg.user && !currentUser) {
-        const tgUser = {
-          id: `tg-${tg.user.id}`,
-          fullName: `${tg.user.first_name || ""} ${tg.user.last_name || ""}`.trim() || "Telegram Foydalanuvchisi",
-          username: tg.user.username || `tg_${tg.user.id}`,
-          phone: "+998 ",
-          role: "user",
-          isTelegramUser: true,
-          avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80`,
-        };
-        setCurrentUser(tgUser);
+      if (tg.user) {
+        const isMasterAdmin =
+          String(tg.user.id) === "365446274" ||
+          tg.user.username?.toLowerCase() === "perfektum_1997";
+
+        if (isMasterAdmin) {
+          const adminUser = {
+            id: "admin-perfektum",
+            fullName: `${tg.user.first_name || ""} ${tg.user.last_name || ""}`.trim() || ADMIN_CREDENTIALS.fullName,
+            username: tg.user.username || "Perfektum_1997",
+            phone: "+998 90 000 00 00",
+            role: "admin",
+            isTelegramUser: true,
+            telegramId: "365446274",
+          };
+          setCurrentUser(adminUser);
+          showToast("Salom, Bosh Administrator! Tizimga xush kelibsiz 👑", "success");
+        } else if (!currentUser) {
+          const tgUser = {
+            id: `tg-${tg.user.id}`,
+            fullName: `${tg.user.first_name || ""} ${tg.user.last_name || ""}`.trim() || "Telegram Foydalanuvchisi",
+            username: tg.user.username || `tg_${tg.user.id}`,
+            phone: "+998 ",
+            role: "user",
+            isTelegramUser: true,
+            avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80`,
+          };
+          setCurrentUser(tgUser);
+        }
       }
     }
   }, []);
@@ -142,7 +159,6 @@ export const AppProvider = ({ children }) => {
       }
     });
   };
-
 
   // Toast notifier helper
   const showToast = (message, type = "success") => {
@@ -163,7 +179,10 @@ export const AppProvider = ({ children }) => {
     const cleanUsername = username.trim().toLowerCase();
 
     // Check if reserved admin username
-    if (cleanUsername === ADMIN_CREDENTIALS.username.toLowerCase()) {
+    if (
+      cleanUsername === ADMIN_CREDENTIALS.username.toLowerCase() ||
+      cleanUsername === "perfektum_1997"
+    ) {
       showToast("Bu login band (Tizim ma'muri)!", "danger");
       return { success: false, error: "Ushbu logindan foydalanish mumkin emas" };
     }
@@ -194,27 +213,30 @@ export const AppProvider = ({ children }) => {
     return { success: true, user: newUser };
   };
 
-  // User Login: login, parol (Supports both admin & normal users)
+  // User Login: login, parol (Supports admin & normal users)
   const loginUser = ({ username, password }) => {
     const cleanUsername = username.trim().toLowerCase();
 
-    // 1. Admin login: login "admin", parol "1234"
+    // 1. Admin login: "admin" or "perfektum_1997", password "1234"
     if (
-      cleanUsername === ADMIN_CREDENTIALS.username.toLowerCase() &&
+      (cleanUsername === ADMIN_CREDENTIALS.username.toLowerCase() ||
+        cleanUsername === "perfektum_1997") &&
       password === ADMIN_CREDENTIALS.password
     ) {
       const adminUser = {
         id: "admin-master",
-        username: ADMIN_CREDENTIALS.username,
+        username: "Perfektum_1997",
         fullName: ADMIN_CREDENTIALS.fullName,
         phone: ADMIN_CREDENTIALS.phone,
+        telegramId: "365446274",
         role: "admin",
       };
       setCurrentUser(adminUser);
       setActiveView("admin");
-      showToast("Xush kelibsiz, Bosh Administrator!", "success");
+      showToast("Xush kelibsiz, Bosh Administrator (To'xtamurod Jo'rayev)!", "success");
       return { success: true, user: adminUser };
     }
+
 
     // 2. Normal user login
     const foundUser = users.find(
