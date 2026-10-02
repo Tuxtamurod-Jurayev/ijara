@@ -81,90 +81,11 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
         {/* Action Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
           
-          {/* E'lonlar */}
-          <button
-            onClick={() => setActiveView("home")}
-            className="btn btn-sm"
-            style={{
-              background: activeView === "home" ? "var(--primary-light)" : "transparent",
-              color: activeView === "home" ? "var(--primary)" : "var(--text-main)",
-              border: "none",
-              fontWeight: 600,
-            }}
-          >
-            E'lonlar
-          </button>
-
-          {/* Favorites */}
-          <button
-            onClick={() => setActiveView("favorites")}
-            className="btn btn-sm"
-            style={{
-              background: activeView === "favorites" ? "rgba(239, 68, 68, 0.1)" : "transparent",
-              color: activeView === "favorites" ? "var(--danger)" : "var(--text-main)",
-              border: "none",
-              gap: "0.35rem",
-              fontWeight: 600,
-            }}
-            title="Sevimlilar"
-          >
-            <IconHeart size={16} color={favorites.length > 0 ? "var(--danger)" : "currentColor"} />
-            <span className="hide-on-mobile">Sevimlilar</span>
-            {favorites.length > 0 && (
-              <span
-                style={{
-                  background: "var(--danger)",
-                  color: "#fff",
-                  fontSize: "0.65rem",
-                  fontWeight: 700,
-                  borderRadius: "999px",
-                  padding: "0.1rem 0.4rem",
-                }}
-              >
-                {favorites.length}
-              </span>
-            )}
-          </button>
-
-          {/* Telegram Bot */}
-          <button
-            onClick={onOpenTelegram}
-            className="btn btn-sm hide-on-mobile"
-            style={{
-              background: "rgba(0, 136, 204, 0.1)",
-              color: "#0088cc",
-              border: "1px solid rgba(0, 136, 204, 0.25)",
-              gap: "0.35rem",
-              fontWeight: 600,
-            }}
-          >
-            <IconSend size={14} />
-            <span>Bot</span>
-          </button>
-
-          {/* Admin Panel Direct Button */}
-          {currentUser?.role === "admin" && (
-            <button
-              onClick={() => setActiveView("admin")}
-              className="btn btn-sm"
-              style={{
-                background: activeView === "admin" ? "var(--accent)" : "rgba(139, 92, 246, 0.12)",
-                color: activeView === "admin" ? "#ffffff" : "var(--accent)",
-                border: "1px solid rgba(139, 92, 246, 0.3)",
-                gap: "0.35rem",
-                fontWeight: 700,
-              }}
-            >
-              <IconShield size={14} />
-              <span>Admin Panel</span>
-            </button>
-          )}
-
           {/* Create Ad */}
           <button
             onClick={onOpenCreateAd}
             className="btn btn-primary btn-sm"
-            style={{ gap: "0.4rem", fontWeight: 700 }}
+            style={{ gap: "0.35rem", fontWeight: 700 }}
           >
             <IconPlusCircle size={15} />
             <span>E'lon berish</span>
@@ -174,8 +95,9 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
           <button
             onClick={toggleTheme}
             className="btn btn-secondary btn-sm"
-            style={{ width: "36px", height: "36px", padding: 0, borderRadius: "50%" }}
+            style={{ width: "36px", height: "36px", padding: 0, borderRadius: "50%", flexShrink: 0 }}
             title="Rejimni almashtirish"
+            aria-label="Rejimni almashtirish"
           >
             {theme === "light" ? <IconMoon size={16} /> : <IconSun size={16} color="#fbbf24" />}
           </button>
@@ -242,31 +164,6 @@ export const Navbar = ({ onOpenAuth, onOpenCreateAd, onOpenTelegram }) => {
                   </div>
 
                   <div style={{ padding: "0.35rem 0" }}>
-                    {currentUser.role === "admin" && (
-                      <button
-                        onClick={() => {
-                          setActiveView("admin");
-                          setDropdownOpen(false);
-                        }}
-                        style={{
-                          width: "100%",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                          padding: "0.5rem 0.65rem",
-                          background: "none",
-                          border: "none",
-                          color: "var(--accent)",
-                          borderRadius: "var(--radius-sm)",
-                          cursor: "pointer",
-                          fontSize: "0.85rem",
-                          fontWeight: 600,
-                        }}
-                      >
-                        <IconShield size={14} />
-                        Admin Panel
-                      </button>
-                    )}
 
                     <button
                       onClick={() => {

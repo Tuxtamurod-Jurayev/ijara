@@ -93,13 +93,7 @@ export const FavoritesView = ({ onSelectAd }) => {
           </button>
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "1.5rem",
-          }}
-        >
+        <div className="responsive-ads-grid">
           {favoriteAds.map((ad) => (
             <AdCard key={ad.id} ad={ad} onSelectAd={onSelectAd} />
           ))}

@@ -155,7 +155,7 @@ export const Hero = () => {
         >
           {/* Main search row */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: "1 1 240px" }}>
+            <div style={{ position: "relative", flex: "2 1 220px", minWidth: "180px" }}>
               <IconSearch
                 size={16}
                 style={{
@@ -183,7 +183,7 @@ export const Hero = () => {
             </div>
 
             {/* Region select */}
-            <div style={{ flex: "1 1 170px" }}>
+            <div style={{ flex: "1 1 140px", minWidth: "130px" }}>
               <select
                 value={activeRegion}
                 onChange={(e) => setActiveRegion(e.target.value)}
@@ -203,7 +203,7 @@ export const Hero = () => {
             </div>
 
             {/* Sort select */}
-            <div style={{ flex: "0 1 160px" }}>
+            <div style={{ flex: "1 1 140px", minWidth: "130px" }}>
               <select
                 value={priceSort}
                 onChange={(e) => setPriceSort(e.target.value)}
@@ -224,7 +224,7 @@ export const Hero = () => {
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               className={`btn btn-sm ${showAdvanced ? "btn-primary" : "btn-secondary"}`}
-              style={{ padding: "0.6rem 0.9rem", borderRadius: "var(--radius-md)", gap: "0.4rem" }}
+              style={{ padding: "0.6rem 0.9rem", borderRadius: "var(--radius-md)", gap: "0.4rem", flexShrink: 0 }}
             >
               <IconSliders size={14} />
               <span>Filtr</span>
@@ -242,7 +242,7 @@ export const Hero = () => {
                 paddingTop: "0.75rem",
                 borderTop: "1px solid var(--border)",
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
                 gap: "0.5rem",
                 alignItems: "center",
               }}
@@ -310,14 +310,12 @@ export const Hero = () => {
           )}
         </div>
 
-        {/* Minimal Category Chips */}
+        {/* Minimal Category Chips with Horizontal Scroll on Mobile */}
         <div
+          className="category-scroll-container"
           style={{
-            display: "flex",
-            alignItems: "center",
             justifyContent: "center",
-            gap: "0.5rem",
-            flexWrap: "wrap",
+            padding: "0.25rem 0",
           }}
         >
           {CATEGORIES.map((cat) => {
@@ -335,6 +333,8 @@ export const Hero = () => {
                   borderRadius: "var(--radius-full)",
                   fontSize: "0.85rem",
                   gap: "0.4rem",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {getCategoryIcon(cat.id, 14)}

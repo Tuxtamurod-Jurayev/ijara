@@ -10,6 +10,7 @@ import { AdminDashboard } from "./components/AdminDashboard";
 import { MyAdsView } from "./components/MyAdsView";
 import { FavoritesView } from "./components/FavoritesView";
 import { TelegramIntegrationModal } from "./components/TelegramIntegrationModal";
+import { MobileBottomNav } from "./components/MobileBottomNav";
 import { ToastContainer } from "./components/ToastContainer";
 import { Footer } from "./components/Footer";
 import {
@@ -179,7 +180,7 @@ const MainContent = () => {
       />
 
       {/* Main Body Switcher */}
-      <main style={{ flexGrow: 1 }}>
+      <main className="has-bottom-nav" style={{ flexGrow: 1 }}>
         {/* VIEW 1: HOME */}
         {activeView === "home" && (
           <>
@@ -266,13 +267,7 @@ const MainContent = () => {
                   </button>
                 </div>
               ) : (
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                    gap: "1.5rem",
-                  }}
-                >
+                <div className="responsive-ads-grid">
                   {filteredAds.map((ad) => (
                     <AdCard key={ad.id} ad={ad} onSelectAd={handleSelectAd} />
                   ))}
@@ -366,6 +361,13 @@ const MainContent = () => {
       <CreateAdModal isOpen={isCreateAdOpen} onClose={() => setIsCreateAdOpen(false)} />
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
       <TelegramIntegrationModal isOpen={isTelegramOpen} onClose={() => setIsTelegramOpen(false)} />
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenCreateAd={() => setIsCreateAdOpen(true)}
+      />
+
       <ToastContainer />
     </div>
   );

@@ -254,7 +254,15 @@ export const AdminDashboard = ({ onSelectAd }) => {
       </div>
 
       {/* Tabs Navigation */}
-      <div style={{ display: "flex", gap: "0.5rem", borderBottom: "1px solid var(--border)", marginBottom: "1.5rem" }}>
+      <div
+        className="category-scroll-container"
+        style={{
+          gap: "0.5rem",
+          borderBottom: "1px solid var(--border)",
+          marginBottom: "1.5rem",
+          paddingBottom: "2px",
+        }}
+      >
         <button
           onClick={() => setActiveTab("users")}
           style={{

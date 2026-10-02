@@ -2,7 +2,7 @@
  * IjaraBozor Telegram Bot Engine
  * Bot: @ijara_buyum_bot
  * Master Admin: To'xtamurod Jo'rayev (ID: 365446274, @Perfektum_1997)
- * Powered by Node.js native fetch & Telegram Bot API
+ * Soddalashtirilgan va optimallashtirilgan tizim
  */
 
 import fs from "fs";
@@ -15,6 +15,7 @@ const __dirname = path.dirname(__filename);
 const BOT_TOKEN = "8999944025:AAHHGHhom9ZjWbIJAaYjsmJJGJNGLqsBbSo";
 const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const ADS_FILE = path.join(__dirname, "src", "data", "ads.json");
+const USERS_FILE = path.join(__dirname, "src", "data", "users.json");
 const CONFIG_FILE = path.join(__dirname, "bot_config.json");
 const SUBSCRIBERS_FILE = path.join(__dirname, "subscribers.json");
 
@@ -53,11 +54,10 @@ function saveSubscribers() {
   } catch (e) {}
 }
 
-// User Step-by-Step Ad Creation Sessions
-// Map<chatId, { step: 'TITLE' | 'PHOTOS' | 'PRICE' | 'PHONE' | 'LOCATION', data: { ... } }>
+// User Sessions: Map<chatId, { flow: 'REG' | 'AD', step: string, data: object }>
 const userSessions = new Map();
 
-// Helper: Read and Write Ads
+// Helpers: Read & Write Data
 function getAds() {
   try {
     if (fs.existsSync(ADS_FILE)) {
@@ -79,6 +79,43 @@ function saveAds(ads) {
   }
 }
 
+function getUsers() {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      return JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+    }
+  } catch (err) {
+    console.error("Users o'qishda xatolik:", err.message);
+  }
+  return [];
+}
+
+function saveUsers(users) {
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
+    return true;
+  } catch (err) {
+    console.error("Users saqlashda xatolik:", err.message);
+    return false;
+  }
+}
+
+function getUserByTgId(tgId) {
+  const users = getUsers();
+  return users.find((u) => Number(u.telegramId) === Number(tgId));
+}
+
+function saveOrUpdateUser(userData) {
+  const users = getUsers();
+  const index = users.findIndex((u) => Number(u.telegramId) === Number(userData.telegramId));
+  if (index >= 0) {
+    users[index] = { ...users[index], ...userData };
+  } else {
+    users.push(userData);
+  }
+  return saveUsers(users);
+}
+
 // Telegram API request wrapper
 async function api(method, params = {}) {
   try {
@@ -94,7 +131,37 @@ async function api(method, params = {}) {
   }
 }
 
-// Check if user is Admin
+// Safe Photo or Message Sender (fallback to text if Telegram rejects file URL)
+async function safeSendPhotoOrMessage(chatId, photo, text, reply_markup = null) {
+  let photoSent = false;
+  const isTgFileUrl = typeof photo === "string" && photo.includes("api.telegram.org/file/");
+
+  if (photo && !isTgFileUrl) {
+    try {
+      const res = await api("sendPhoto", {
+        chat_id: chatId,
+        photo: photo,
+        caption: text,
+        parse_mode: "HTML",
+        reply_markup: reply_markup || undefined,
+      });
+      if (res.ok) {
+        photoSent = true;
+      }
+    } catch (e) {}
+  }
+
+  if (!photoSent) {
+    await api("sendMessage", {
+      chat_id: chatId,
+      text: text,
+      parse_mode: "HTML",
+      reply_markup: reply_markup || undefined,
+    });
+  }
+}
+
+// Check if user is Master Admin
 function isAdmin(user) {
   if (!user) return false;
   return (
@@ -123,17 +190,13 @@ function detectRegion(loc = "") {
   return "Toshkent shahri";
 }
 
-// Setup Bot
+// Setup Bot Commands
 async function setupBot() {
-  console.log("🤖 @ijara_buyum_bot sozlanmoqda...");
-
   await api("setMyCommands", {
     commands: [
       { command: "start", description: "Bosh menyu" },
-      { command: "elon_berish", description: "Yangi ijara e'loni joylash (3 ta rasm + narx)" },
-      { command: "elonlar", description: "Barcha faol e'lonlar" },
+      { command: "reklama", description: "Reklama joylashtirish" },
       { command: "webapp", description: "Ijara Bozor Web App" },
-      { command: "kategoriyalar", description: "Toifalar bo'yicha ko'rish" },
       { command: "admin", description: "Admin paneli" },
     ],
   });
@@ -154,171 +217,109 @@ async function setupBot() {
   }
 }
 
-// Format Ad Card for Telegram
-function formatAdCard(ad) {
-  const photosCount = (ad.images && ad.images.length) || 1;
-  return `
-🏠 <b>${ad.title}</b>
-
-💰 <b>Narxi:</b> ${ad.price.toLocaleString()} ${ad.currency} / ${ad.period}
-📍 <b>Manzil:</b> ${ad.location}
-📂 <b>Toifa:</b> ${ad.category?.toUpperCase()}
-📸 <b>Rasmlar:</b> ${photosCount} ta
-👤 <b>Bog'lanish:</b> ${ad.userPhone || "Ko'rsatilmagan"}
-${ad.telegramUsername ? `💬 <b>Telegram:</b> @${ad.telegramUsername}` : ""}
-
-📝 <i>${ad.description?.slice(0, 160)}...</i>
-  `.trim();
-}
-
-// Notify Admin about new ad or event
-export async function notifyAdmin(ad) {
-  const photosCount = (ad.images && ad.images.length) || 1;
-  const text = `
-🚨 <b>YANGI IJARA E'LONI JOYLASHDI!</b>
-
-🏷 <b>Nomi:</b> ${ad.title}
-💰 <b>Kunlik narxi:</b> ${ad.price.toLocaleString()} ${ad.currency} / ${ad.period}
-📍 <b>Manzil:</b> ${ad.location}
-📸 <b>Rasmlar soni:</b> ${photosCount} ta
-👤 <b>Egasi:</b> ${ad.userName} (Tel: ${ad.userPhone})
-${ad.telegramUsername ? `Telegram: @${ad.telegramUsername}` : ""}
-  `.trim();
-
-  const buttons = [
-    [
-      { text: "📱 WebAppda ko'rish", web_app: { url: `${WEB_APP_URL}?ad=${ad.id}` } },
-      { text: "🗑 O'chirish (Moderatsiya)", callback_data: `admin_del_${ad.id}` },
-    ],
-  ];
-
-  if (ad.image && ad.image.startsWith("http")) {
-    await api("sendPhoto", {
-      chat_id: ADMIN_ID,
-      photo: ad.image,
-      caption: text,
-      parse_mode: "HTML",
-      reply_markup: { inline_keyboard: buttons },
-    });
-  } else {
-    await api("sendMessage", {
-      chat_id: ADMIN_ID,
-      text: text,
-      parse_mode: "HTML",
-      reply_markup: { inline_keyboard: buttons },
-    });
-  }
-}
-
-// Admin Panel Handler
-async function handleAdminPanel(chatId) {
-  const ads = getAds();
-  const totalAds = ads.length;
-  const vipCount = ads.filter((a) => a.isVip).length;
-
-  const text = `
-👑 <b>HURMATLI ADMIN (To'xtamurod Jo'rayev)!</b>
-
-IjaraBozor boshqaruv markaziga xush kelibsiz.
-• 📊 <b>Jami e'lonlar:</b> ${totalAds} ta
-• 👑 <b>VIP e'lonlar:</b> ${vipCount} ta
-• 👥 <b>Bot obunachilari:</b> ${subscribers.size} nafar
-• 🌐 <b>Hozirgi Web App:</b> <code>${WEB_APP_URL}</code>
-
-<i>Web App manzilini yangilash uchun: <code>/seturl https://manzil.vercel.app</code></i>
-  `.trim();
-
-  await api("sendMessage", {
-    chat_id: chatId,
-    text: text,
-    parse_mode: "HTML",
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: "📱 Admin WebApp Paneli", web_app: { url: `${WEB_APP_URL}?view=admin` } },
-        ],
-        [
-          { text: "📋 E'lonlarni boshqarish (O'chirish)", callback_data: "admin_manage_ads" },
-          { text: "➕ Yangi E'lon Joylash", callback_data: "cmd_add" },
-        ],
-        [
-          { text: "📢 Xabar tarqatish (Broadcast)", callback_data: "admin_broadcast_info" },
-          { text: "🔄 Yangilash", callback_data: "admin_refresh" },
-        ],
-      ],
-    },
-  });
-}
-
-// User Start Handler
+// User Start Handler (Faqat 2 ta tugma bilan sodda va qulay)
 async function handleStart(chatId, user) {
   subscribers.add(chatId);
   saveSubscribers();
 
-  const isUserAdmin = isAdmin(user);
+  const startText = `Salom! Siz bu yerdan o'zingizga kerakli buyumlarni ijaraga topishingiz mumkin.`;
 
-  if (isUserAdmin) {
-    await handleAdminPanel(chatId);
-    return;
-  }
-
-  const firstName = user?.first_name || "Foydalanuvchi";
-  const text = `
-Assalomu alaykum, <b>${firstName}</b>! 👋
-
-<b>IjaraBozor</b> platformasiga xush kelibsiz! 🏠🚗
-Bu yerda kvartira, hovli, dacha, avtomobil va jihozlarni to'g'ridan-to'g'ri egasidan ijaraga oling yoki bir necha soniyada o'z e'loningizni joylang!
-
-Kerakli amalni tanlang:
-  `.trim();
+  const existingUser = getUserByTgId(user.id);
+  const webAppUrlWithUser = existingUser
+    ? `${WEB_APP_URL}?userId=${existingUser.id}&name=${encodeURIComponent(existingUser.name)}&phone=${encodeURIComponent(existingUser.phone)}&tgId=${existingUser.telegramId}`
+    : `${WEB_APP_URL}?tgId=${user.id}`;
 
   await api("sendMessage", {
     chat_id: chatId,
-    text: text,
-    parse_mode: "HTML",
+    text: startText,
     reply_markup: {
       inline_keyboard: [
-        [
-          { text: "➕ E'lon Berish (Bot orqali)", callback_data: "cmd_add_bot" },
-          { text: "📱 Web App", web_app: { url: WEB_APP_URL } },
-        ],
-        [
-          { text: "📋 E'lonlarni ko'rish", callback_data: "cmd_ads" },
-          { text: "🔍 Toifalar", callback_data: "cmd_categories" },
-        ],
-        [
-          { text: "🏢 Kvartiralar", callback_data: "cat_kvartira" },
-          { text: "🚗 Avtomobillar", callback_data: "cat_avto" },
-        ],
+        [{ text: "🔍 Buyumlarni ko'rish", web_app: { url: webAppUrlWithUser } }],
+        [{ text: "📢 Reklama joylashtirish", callback_data: "cmd_reklama" }],
       ],
     },
   });
 }
 
-// Start Ad Creation Wizard in Bot
-async function startAdCreationWizard(chatId) {
+// Reklama joylashtirish handler (Ro'yxatdan o'tish yoki to'g'ridan-to'g'ri e'lon berish)
+async function handleReklamaRequest(chatId, user) {
+  const existingUser = getUserByTgId(user.id);
+
+  if (!existingUser) {
+    // 1-marta kelgan: Ro'yxatdan o'tishni so'rash
+    userSessions.set(chatId, {
+      flow: "REG",
+      step: "REG_NAME",
+      data: {
+        telegramId: user.id,
+        username: user.username || "",
+        name: "",
+        phone: "",
+      },
+    });
+
+    const regPrompt = `Ro'yxatdan o'ting va botimizga reklama joylashtirishingiz mumkin.\n\n👤 <b>Iltimos, ismingizni kiriting:</b>`;
+
+    await api("sendMessage", {
+      chat_id: chatId,
+      text: regPrompt,
+      parse_mode: "HTML",
+      reply_markup: {
+        keyboard: [[{ text: "❌ Bekor qilish" }]],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+      },
+    });
+  } else {
+    // Allaqachon ro'yxatdan o'tgan
+    const userWebUrl = `${WEB_APP_URL}?userId=${existingUser.id}&name=${encodeURIComponent(existingUser.name)}&phone=${encodeURIComponent(existingUser.phone)}&tgId=${existingUser.telegramId}`;
+
+    await api("sendMessage", {
+      chat_id: chatId,
+      text: `Salom, <b>${existingUser.name}</b>! Siz ro'yxatdan o'tgansiz ✅\n\n🆔 <b>Telegram ID:</b> <code>${existingUser.telegramId}</code>\n📞 <b>Telefon:</b> <code>${existingUser.phone}</code>\n\nReklama (e'lon) joylashtirishni boshlaymizmi?`,
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "➕ Reklama (e'lon) joylashtirish", callback_data: "cmd_start_ad" }],
+          [{ text: "📱 Web Appga kirish", web_app: { url: userWebUrl } }],
+        ],
+      },
+    });
+  }
+}
+
+// Ad Creation Wizard start
+async function startAdCreationWizard(chatId, user) {
+  const existingUser = getUserByTgId(user.id);
+  const userName = existingUser?.name || [user.first_name, user.last_name].filter(Boolean).join(" ") || "Foydalanuvchi";
+  const userPhone = existingUser?.phone || "";
+
   userSessions.set(chatId, {
+    flow: "AD",
     step: "TITLE",
     data: {
+      userId: existingUser?.id || `tg-${user.id}`,
+      telegramId: user.id,
+      userName: userName,
+      userPhone: userPhone,
+      telegramUsername: user.username || "",
       title: "",
       images: [],
+      fileIds: [],
       price: 0,
       currency: "UZS",
       period: "kuniga",
       rentalType: "kunlik",
-      userPhone: "",
       location: "",
     },
   });
 
   const text = `
-➕ <b>YANGI IJARA E'LONI QO'SHISH (1/5)</b>
+➕ <b>YANGI REKLAMA (E'LON) JOYLASH</b>
 
 📝 <b>1-Qadam: E'lon nomini (sarlavhasini) kiriting:</b>
 
 Masalan: <i>Chilonzorda shinam 2 xonali kvartira</i> yoki <i>Chevrolet Gentra 2024</i>
-
-<i>(Bekor qilish uchun /cancel deb yozing)</i>
   `.trim();
 
   await api("sendMessage", {
@@ -333,8 +334,50 @@ Masalan: <i>Chilonzorda shinam 2 xonali kvartira</i> yoki <i>Chevrolet Gentra 20
   });
 }
 
-// Handle Step-by-Step Ad Creation
-async function handleAdCreationStep(chatId, user, msg) {
+// Notify Master Admin To'xtamurod Jo'rayev
+async function notifyAdminNewUser(newUser) {
+  const text = `
+👤 <b>YANGI FOYDALANUVCHI RO'YXATDAN O'TDI!</b>
+
+🆔 <b>Telegram ID:</b> <code>${newUser.telegramId}</code>
+👤 <b>Ism:</b> ${newUser.name}
+📞 <b>Telefon:</b> ${newUser.phone}
+${newUser.username ? `💬 <b>Username:</b> @${newUser.username}\n` : ""}📅 <b>Sana:</b> ${new Date().toLocaleString("uz-UZ")}
+  `.trim();
+
+  await api("sendMessage", {
+    chat_id: ADMIN_ID,
+    text: text,
+    parse_mode: "HTML",
+  });
+}
+
+async function notifyAdminNewAd(newAd) {
+  const text = `
+🚨 <b>YANGI REKLAMA (E'LON) TIZIMGA YUKLANDI!</b>
+
+🏷 <b>Nomi:</b> ${newAd.title}
+💰 <b>Kunlik narxi:</b> ${newAd.price.toLocaleString()} ${newAd.currency} / kuniga
+📍 <b>Manzil:</b> ${newAd.location}
+📸 <b>Rasmlar soni:</b> ${newAd.images.length} ta
+👤 <b>Egasi:</b> ${newAd.userName} (Tel: ${newAd.userPhone})
+${newAd.telegramUsername ? `💬 <b>Telegram:</b> @${newAd.telegramUsername}\n` : ""}
+✅ <i>E'lon muvaffaqiyatli qabul qilindi va bazaga yuklandi.</i>
+  `.trim();
+
+  const buttons = [
+    [
+      { text: "📱 WebAppda ko'rish", web_app: { url: `${WEB_APP_URL}?ad=${newAd.id}` } },
+      { text: "🗑 O'chirish", callback_data: `admin_del_${newAd.id}` },
+    ],
+  ];
+
+  const photoToSend = newAd.fileId || (newAd.image && !newAd.image.includes("api.telegram.org/file/") ? newAd.image : null);
+  await safeSendPhotoOrMessage(ADMIN_ID, photoToSend, text, { inline_keyboard: buttons });
+}
+
+// Handle Interactive Steps
+async function handleUserStep(chatId, user, msg) {
   const session = userSessions.get(chatId);
   if (!session) return;
 
@@ -344,342 +387,362 @@ async function handleAdCreationStep(chatId, user, msg) {
     userSessions.delete(chatId);
     await api("sendMessage", {
       chat_id: chatId,
-      text: "❌ E'lon berish jarayoni bekor qilindi.",
+      text: "❌ <b>Amal bekor qilindi (Yuklanmadi).</b>\nBosh menyuga qaytish uchun /start ni bosing.",
+      parse_mode: "HTML",
       reply_markup: { remove_keyboard: true },
     });
     return;
   }
 
-  // STEP 1: TITLE
-  if (session.step === "TITLE") {
-    if (!text.trim() || text.length < 3) {
-      await api("sendMessage", {
-        chat_id: chatId,
-        text: "Iltimos, e'lon nomini to'liqroq kiriting (kamida 3 ta harf):",
-      });
-      return;
-    }
-
-    session.data.title = text.trim();
-    session.step = "PHOTOS";
-
-    await api("sendMessage", {
-      chat_id: chatId,
-      text: `✅ <b>Nomi saqlandi:</b> "${session.data.title}"\n\n📸 <b>2-Qadam: E'lon uchun kamida 3 ta rasm yuboring:</b>\n\nRasmlarni Telegram orqali bittalab yoki birdaniga yuboring (kamida 3 ta bo'lishi shart).\nHozircha yuklandi: <b>0 / 3</b> ta rasm.`,
-      parse_mode: "HTML",
-    });
-    return;
-  }
-
-  // STEP 2: PHOTOS
-  if (session.step === "PHOTOS") {
-    if (msg.photo && msg.photo.length > 0) {
-      const photo = msg.photo[msg.photo.length - 1];
-      const fileRes = await api("getFile", { file_id: photo.file_id });
-      let photoUrl = "";
-      if (fileRes.ok && fileRes.result?.file_path) {
-        photoUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileRes.result.file_path}`;
-      } else {
-        photoUrl = `https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80`;
-      }
-
-      session.data.images.push(photoUrl);
-      const count = session.data.images.length;
-
-      if (count < 3) {
+  // ===================== FLOW 1: REGISTRATION =====================
+  if (session.flow === "REG") {
+    // Step 1: Name
+    if (session.step === "REG_NAME") {
+      if (!text.trim() || text.length < 2) {
         await api("sendMessage", {
           chat_id: chatId,
-          text: `✅ <b>${count}-rasm qabul qilindi!</b>\n\nKamida 3 ta rasm talab qilinadi. Yana <b>${3 - count} ta</b> rasm yuboring.`,
-          parse_mode: "HTML",
-        });
-      } else {
-        await api("sendMessage", {
-          chat_id: chatId,
-          text: `✅ <b>${count}-rasm qabul qilindi!</b> (Talab bajarildi: kamida 3 ta rasm mavjud ✅)\n\nYana rasm yuborishingiz mumkin yoki narx kiritishga o'ting:`,
-          parse_mode: "HTML",
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "➡️ 3-Qadam: Kunlik narxni kiritish", callback_data: "step_next_price" }],
-            ],
-          },
-        });
-      }
-      return;
-    } else if (text.startsWith("http://") || text.startsWith("https://")) {
-      session.data.images.push(text.trim());
-      const count = session.data.images.length;
-      if (count < 3) {
-        await api("sendMessage", {
-          chat_id: chatId,
-          text: `✅ <b>${count}-rasm havolasi saqlandi!</b>\nYana <b>${3 - count} ta</b> rasm yuboring.`,
-          parse_mode: "HTML",
-        });
-      } else {
-        await api("sendMessage", {
-          chat_id: chatId,
-          text: `✅ <b>${count}-rasm saqlandi!</b>\n\nKeyingi bosqichga o'tishingiz mumkin:`,
-          parse_mode: "HTML",
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "➡️ 3-Qadam: Kunlik narxni kiritish", callback_data: "step_next_price" }],
-            ],
-          },
-        });
-      }
-      return;
-    } else if (text.toLowerCase() === "davom" || text.toLowerCase() === "keyingi" || text.toLowerCase() === "ok") {
-      if (session.data.images.length < 3) {
-        await api("sendMessage", {
-          chat_id: chatId,
-          text: `⚠️ Kamida 3 ta rasm yuklanishi shart! Hozirda: <b>${session.data.images.length} / 3</b> ta rasm.`,
+          text: "❌ <b>Ism qabul qilinmadi!</b>\n\nIltimos, ismingizni to'liqroq kiriting (kamida 2 ta harf):",
           parse_mode: "HTML",
         });
         return;
       }
-      session.step = "PRICE";
-      await promptPrice(chatId);
-      return;
-    } else {
+
+      session.data.name = text.trim();
+      session.step = "REG_PHONE";
+
       await api("sendMessage", {
         chat_id: chatId,
-        text: `Iltimos, fotosurat yuboring. Hozirda yuklangan: <b>${session.data.images.length} / 3</b> ta rasm.`,
+        text: `✅ <b>Ismingiz qabul qilindi: ${session.data.name}</b>\n\n📞 <b>Endi telefon raqamingizni yuboring:</b>\n\nPastdagi <b>📱 Raqamimni yuborish</b> tugmasini bosing yoki raqamingizni yozing (masalan: <i>+998901234567</i>):`,
         parse_mode: "HTML",
+        reply_markup: {
+          keyboard: [
+            [{ text: "📱 Raqamimni yuborish", request_contact: true }],
+            [{ text: "❌ Bekor qilish" }],
+          ],
+          resize_keyboard: true,
+          one_time_keyboard: true,
+        },
       });
       return;
     }
-  }
 
-  // STEP 3: PRICE
-  if (session.step === "PRICE") {
-    const raw = text.toLowerCase().replace(/\s+/g, "");
-    let currency = "UZS";
-    if (raw.includes("usd") || raw.includes("$")) {
-      currency = "USD";
-    }
-    const num = parseInt(raw.replace(/[^0-9]/g, ""), 10);
-    if (!num || isNaN(num) || num <= 0) {
+    // Step 2: Phone
+    if (session.step === "REG_PHONE") {
+      let phone = "";
+      if (msg.contact && msg.contact.phone_number) {
+        phone = msg.contact.phone_number;
+      } else if (text) {
+        phone = text.trim();
+      }
+
+      const cleanDigits = (phone || "").replace(/[^0-9]/g, "");
+      if (!phone || cleanDigits.length < 9) {
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: "❌ <b>Telefon raqam qabul qilinmadi!</b>\n\nIltimos, telefon raqamingizni to'g'ri formatda kiriting (masalan: +998901234567):",
+          parse_mode: "HTML",
+        });
+        return;
+      }
+
+      if (!phone.startsWith("+") && cleanDigits.length === 9) {
+        phone = "+998" + cleanDigits;
+      } else if (!phone.startsWith("+")) {
+        phone = "+" + cleanDigits;
+      }
+
+      // Save user to database
+      const newUser = {
+        id: `tg-${user.id}`,
+        telegramId: user.id,
+        name: session.data.name,
+        phone: phone,
+        username: user.username || "",
+        role: isAdmin(user) ? "admin" : "user",
+        registeredAt: new Date().toISOString(),
+      };
+
+      const saved = saveOrUpdateUser(newUser);
+      userSessions.delete(chatId);
+
+      if (!saved) {
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: "❌ <b>Ro'yxatdan o'tishda xatolik yuz berdi (Yuklanmadi).</b> Qaytadan urinib ko'ring: /reklama",
+          parse_mode: "HTML",
+          reply_markup: { remove_keyboard: true },
+        });
+        return;
+      }
+
+      const webAppLoginUrl = `${WEB_APP_URL}?userId=${newUser.id}&name=${encodeURIComponent(newUser.name)}&phone=${encodeURIComponent(newUser.phone)}&tgId=${newUser.telegramId}`;
+
       await api("sendMessage", {
         chat_id: chatId,
-        text: "Iltimos, kunlik narxni to'g'ri son shaklida kiriting (masalan: <i>250000</i> yoki <i>30 USD</i>):",
+        text: `
+✅ <b>Tabriklaymiz, ${newUser.name}! Siz muvaffaqiyatli ro'yxatdan o'tdingiz!</b> 🎉
+
+🆔 <b>Telegram ID:</b> <code>${newUser.telegramId}</code> (bazasiga saqlandi)
+📞 <b>Telefon raqam:</b> <code>${newUser.phone}</code>
+
+Endi bot orqali reklama joylashtirishingiz yoki shaxsiy hisobingiz bilan to'g'ridan-to'g'ri Web Appga kirishingiz mumkin:
+        `.trim(),
         parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "📱 Web Appga kirish", web_app: { url: webAppLoginUrl } }],
+            [{ text: "📢 Reklama (e'lon) joylashtirish", callback_data: "cmd_start_ad" }],
+          ],
+        },
       });
+
+      // Notify master admin
+      await notifyAdminNewUser(newUser);
       return;
     }
-
-    session.data.price = num;
-    session.data.currency = currency;
-    session.data.period = "kuniga";
-    session.step = "PHONE";
-
-    await api("sendMessage", {
-      chat_id: chatId,
-      text: `✅ <b>Kunlik narx:</b> ${num.toLocaleString()} ${currency} / kuniga\n\n📞 <b>4-Qadam: Bog'lanish uchun telefon raqamingizni yuboring:</b>\n\nPastdagi <b>📱 Raqamimni yuborish</b> tugmasini bosing yoki raqamingizni yozing (masalan: <i>+998901234567</i>):`,
-      parse_mode: "HTML",
-      reply_markup: {
-        keyboard: [
-          [{ text: "📱 Raqamimni yuborish", request_contact: true }],
-          [{ text: "❌ Bekor qilish" }],
-        ],
-        resize_keyboard: true,
-        one_time_keyboard: true,
-      },
-    });
-    return;
   }
 
-  // STEP 4: PHONE
-  if (session.step === "PHONE") {
-    let phone = "";
-    if (msg.contact && msg.contact.phone_number) {
-      phone = msg.contact.phone_number;
-    } else if (text) {
-      phone = text.trim();
-    }
+  // ===================== FLOW 2: AD CREATION =====================
+  if (session.flow === "AD") {
+    // Step 1: Title
+    if (session.step === "TITLE") {
+      if (!text.trim() || text.length < 3) {
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: "❌ <b>E'lon nomi qabul qilinmadi!</b>\n\nIltimos, e'lon nomini to'liqroq kiriting (kamida 3 ta harf bo'lishi shart):",
+          parse_mode: "HTML",
+        });
+        return;
+      }
 
-    if (!phone || phone.replace(/[^0-9]/g, "").length < 7) {
+      session.data.title = text.trim();
+      session.step = "PHOTOS";
+
       await api("sendMessage", {
         chat_id: chatId,
-        text: "Iltimos, telefon raqamingizni to'g'ri formatda kiriting (masalan: +998901234567):",
+        text: `✅ <b>1-Qadam bajarildi: E'lon nomi qabul qilindi!</b>\n📌 Nomi: "<b>${session.data.title}</b>"\n\n📸 <b>2-Qadam: E'lon uchun kamida 3 ta rasm yuboring:</b>\n\nRasmlarni Telegram orqali bittalab yoki birdaniga yuboring (kamida 3 ta rasm bo'lishi shart).\nHozircha yuklandi: <b>0 / 3</b> ta rasm.`,
+        parse_mode: "HTML",
+        reply_markup: { remove_keyboard: true },
       });
       return;
     }
 
-    if (!phone.startsWith("+") && phone.length === 9) {
-      phone = "+998" + phone;
+    // Step 2: Photos
+    if (session.step === "PHOTOS") {
+      if (msg.photo && msg.photo.length > 0) {
+        const photo = msg.photo[msg.photo.length - 1];
+        const fileId = photo.file_id;
+
+        if (!session.data.fileIds) session.data.fileIds = [];
+        session.data.fileIds.push(fileId);
+
+        const fileRes = await api("getFile", { file_id: fileId });
+        let photoUrl = "";
+        if (fileRes.ok && fileRes.result?.file_path) {
+          photoUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileRes.result.file_path}`;
+        } else {
+          photoUrl = `https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80`;
+        }
+
+        session.data.images.push(photoUrl);
+        const count = session.data.images.length;
+
+        if (count < 3) {
+          await api("sendMessage", {
+            chat_id: chatId,
+            text: `✅ <b>${count}-rasm muvaffaqiyatli yuklandi!</b>\n\n⚠️ Kamida 3 ta rasm talab qilinadi. Yana <b>${3 - count} ta</b> rasm yuboring.`,
+            parse_mode: "HTML",
+          });
+        } else {
+          await api("sendMessage", {
+            chat_id: chatId,
+            text: `✅ <b>${count}-rasm muvaffaqiyatli yuklandi!</b> (Talab bajarildi: kamida 3 ta rasm yuklandi ✅)\n\nYana rasm yuborishingiz mumkin yoki narx kiritishga o'ting:`,
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: "➡️ 3-Qadam: Kunlik narxni kiritish", callback_data: "step_next_price" }],
+              ],
+            },
+          });
+        }
+        return;
+      } else if (text.startsWith("http://") || text.startsWith("https://")) {
+        session.data.images.push(text.trim());
+        if (!session.data.fileIds) session.data.fileIds = [];
+        session.data.fileIds.push(text.trim());
+        const count = session.data.images.length;
+        if (count < 3) {
+          await api("sendMessage", {
+            chat_id: chatId,
+            text: `✅ <b>${count}-rasm havolasi yuklandi!</b>\nYana <b>${3 - count} ta</b> rasm yuboring.`,
+            parse_mode: "HTML",
+          });
+        } else {
+          await api("sendMessage", {
+            chat_id: chatId,
+            text: `✅ <b>${count}-rasm muvaffaqiyatli yuklandi!</b>\n\nKeyingi bosqichga o'tishingiz mumkin:`,
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: "➡️ 3-Qadam: Kunlik narxni kiritish", callback_data: "step_next_price" }],
+              ],
+            },
+          });
+        }
+        return;
+      } else if (text.toLowerCase() === "davom" || text.toLowerCase() === "keyingi" || text.toLowerCase() === "ok") {
+        if (session.data.images.length < 3) {
+          await api("sendMessage", {
+            chat_id: chatId,
+            text: `❌ <b>Rasm yetarli emas (Yuklanmadi)!</b>\nKamida 3 ta rasm yuklanishi shart! Hozirda: <b>${session.data.images.length} / 3</b> ta rasm.`,
+            parse_mode: "HTML",
+          });
+          return;
+        }
+        session.step = "PRICE";
+        await promptPrice(chatId);
+        return;
+      } else {
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: `❌ <b>Rasm qabul qilinmadi!</b>\nIltimos, fotosurat yuboring. Hozircha yuklangan: <b>${session.data.images.length} / 3</b> ta rasm.`,
+          parse_mode: "HTML",
+        });
+        return;
+      }
     }
 
-    session.data.userPhone = phone;
-    session.step = "LOCATION";
+    // Step 3: Price
+    if (session.step === "PRICE") {
+      const raw = text.toLowerCase().replace(/\s+/g, "");
+      let currency = "UZS";
+      if (raw.includes("usd") || raw.includes("$")) {
+        currency = "USD";
+      }
+      const num = parseInt(raw.replace(/[^0-9]/g, ""), 10);
+      if (!num || isNaN(num) || num <= 0) {
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: "❌ <b>Narx qabul qilinmadi!</b>\n\nIltimos, kunlik narxni to'g'ri son shaklida kiriting (masalan: <i>250000</i> yoki <i>30 USD</i>):",
+          parse_mode: "HTML",
+        });
+        return;
+      }
 
-    await api("sendMessage", {
-      chat_id: chatId,
-      text: `✅ <b>Telefon raqam:</b> ${phone}\n\n📍 <b>5-Qadam: Joylashuv / Manzilni kiriting:</b>\n\nMasalan: <i>Toshkent sh., Yunusobod 4-mavze</i> yoki <i>Samarqand sh., Registon yaqinida</i>`,
-      parse_mode: "HTML",
-      reply_markup: { remove_keyboard: true },
-    });
-    return;
-  }
+      session.data.price = num;
+      session.data.currency = currency;
+      session.step = "LOCATION";
 
-  // STEP 5: LOCATION (Finish)
-  if (session.step === "LOCATION") {
-    if (!text.trim() || text.length < 3) {
       await api("sendMessage", {
         chat_id: chatId,
-        text: "Iltimos, manzilni aniqroq kiriting:",
+        text: `✅ <b>3-Qadam bajarildi: Kunlik narx saqlandi!</b>\n💰 Narx: <b>${num.toLocaleString()} ${currency} / kuniga</b>\n\n📍 <b>4-Qadam: Joylashuv / Manzilni kiriting:</b>\n\nMasalan: <i>Toshkent sh., Yunusobod 4-mavze</i> yoki <i>Namangan sh., Uchqo'rg'on</i>`,
+        parse_mode: "HTML",
+        reply_markup: { remove_keyboard: true },
       });
       return;
     }
 
-    session.data.location = text.trim();
+    // Step 4: Location (Finish & Publish)
+    if (session.step === "LOCATION") {
+      if (!text.trim() || text.length < 3) {
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: "❌ <b>Manzil qabul qilinmadi!</b>\n\nIltimos, joylashuv manzilini aniqroq kiriting (kamida 3 ta harf):",
+          parse_mode: "HTML",
+        });
+        return;
+      }
 
-    // Assemble new ad
-    const newAd = {
-      id: "ad-" + Date.now(),
-      userId: `tg-${user.id}`,
-      userName: [user.first_name, user.last_name].filter(Boolean).join(" ") || "Telegram Foydalanuvchisi",
-      userPhone: session.data.userPhone,
-      telegramUsername: user.username || "",
-      title: session.data.title,
-      category: detectCategory(session.data.title),
-      region: detectRegion(session.data.location),
-      price: session.data.price,
-      currency: session.data.currency,
-      period: "kuniga",
-      rentalType: "kunlik",
-      location: session.data.location,
-      image: session.data.images[0],
-      images: session.data.images,
-      description: `${session.data.title}.\nKunlik ijara: ${session.data.price.toLocaleString()} ${session.data.currency}.\nManzil: ${session.data.location}.\nBog'lanish: ${session.data.userPhone}.`,
-      features: ["Kunlik ijara", "Ishonchli", "Tezkor aloqa"],
-      viewsCount: 1,
-      isVip: false,
-      createdAt: new Date().toISOString().split("T")[0],
-      status: "active",
-    };
+      session.data.location = text.trim();
 
-    // Save to ads.json
-    const ads = getAds();
-    ads.unshift(newAd);
-    saveAds(ads);
+      try {
+        const newAd = {
+          id: "ad-" + Date.now(),
+          userId: session.data.userId || `tg-${user.id}`,
+          userName: session.data.userName || [user.first_name, user.last_name].filter(Boolean).join(" ") || "Telegram Foydalanuvchisi",
+          userPhone: session.data.userPhone || "+998900000000",
+          telegramUsername: session.data.telegramUsername || user.username || "",
+          title: session.data.title,
+          category: detectCategory(session.data.title),
+          region: detectRegion(session.data.location),
+          price: session.data.price,
+          currency: session.data.currency,
+          period: "kuniga",
+          rentalType: "kunlik",
+          location: session.data.location,
+          fileId: session.data.fileIds?.[0] || null,
+          fileIds: session.data.fileIds || [],
+          image: session.data.images[0] || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+          images: session.data.images && session.data.images.length > 0 ? session.data.images : ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80"],
+          description: `${session.data.title}.\nKunlik ijara: ${session.data.price.toLocaleString()} ${session.data.currency}.\nManzil: ${session.data.location}.\nBog'lanish: ${session.data.userPhone}.`,
+          features: ["Kunlik ijara", "Ishonchli", "Tezkor aloqa"],
+          viewsCount: 1,
+          isVip: false,
+          createdAt: new Date().toISOString().split("T")[0],
+          status: "active",
+        };
 
-    // Clear session
-    userSessions.delete(chatId);
+        const ads = getAds();
+        ads.unshift(newAd);
+        const isSaved = saveAds(ads);
 
-    // Send confirmation to user
-    const successCaption = `
-🎉 <b>TABRIKLAYMIZ! E'LONINGIZ MUVAFFAQIYATLI JOYLASHDI!</b>
+        if (!isSaved) {
+          throw new Error("Ma'lumotlar bazasiga yozishda xatolik yuz berdi");
+        }
+
+        userSessions.delete(chatId);
+
+        const successCaption = `
+🎉 <b>TABRIKLAYMIZ! E'LONINGIZ MUVAFFAQIYATLI YUKLANDI!</b> ✅
 
 🏷 <b>Nomi:</b> ${newAd.title}
 💰 <b>Kunlik narxi:</b> ${newAd.price.toLocaleString()} ${newAd.currency} / kuniga
-📸 <b>Rasmlar soni:</b> ${newAd.images.length} ta
+📂 <b>Toifa:</b> ${newAd.category.toUpperCase()}
 📍 <b>Manzil:</b> ${newAd.location}
 📞 <b>Telefon:</b> ${newAd.userPhone}
-${newAd.telegramUsername ? `💬 <b>Telegram:</b> @${newAd.telegramUsername}` : ""}
+${newAd.telegramUsername ? `💬 <b>Telegram:</b> @${newAd.telegramUsername}\n` : ""}📸 <b>Rasmlar soni:</b> ${newAd.images.length} ta
 
-✅ <i>E'loningiz hozirning o'zida ham Telegram botda, ham IjaraBozor Web App tizimida faollashdi!</i>
-    `.trim();
+🚀 <b>Holati: YUKLANDI VA FAOLLASHTIRILDI!</b>
+<i>E'loningiz hozirning o'zida ham Telegram botda, ham IjaraBozor Web App tizimida barcha uchun faol bo'ldi!</i>
+        `.trim();
 
-    await api("sendPhoto", {
-      chat_id: chatId,
-      photo: newAd.image,
-      caption: successCaption,
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: "📱 Web Appda ochish", web_app: { url: `${WEB_APP_URL}?ad=${newAd.id}` } },
-            { text: "📋 Barcha e'lonlar", callback_data: "cmd_ads" },
+        const photoToSend = newAd.fileId || (newAd.image && !newAd.image.includes("api.telegram.org/file/") ? newAd.image : null);
+
+        await safeSendPhotoOrMessage(chatId, photoToSend, successCaption, {
+          inline_keyboard: [
+            [
+              { text: "📱 Web Appda ochish", web_app: { url: `${WEB_APP_URL}?ad=${newAd.id}` } },
+            ],
+            [
+              { text: "➕ Yangi e'lon berish", callback_data: "cmd_start_ad" },
+            ],
           ],
-        ],
-      },
-    });
+        });
 
-    // Notify Master Admin To'xtamurod Jo'rayev
-    await notifyAdmin(newAd);
+        // Notify master admin
+        await notifyAdminNewAd(newAd);
+      } catch (err) {
+        console.error("E'lonni yuklashda xatolik:", err);
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: `❌ <b>E'LON YUKLANMADI!</b>\n\nKechirasiz, e'lonni tizimga yuklashda texnik xatolik yuz berdi: <i>${err.message}</i>\n\nIltimos, qaytadan urinib ko'rish uchun /reklama buyrug'ini bosing.`,
+          parse_mode: "HTML",
+        });
+      }
+      return;
+    }
   }
 }
 
 async function promptPrice(chatId) {
   await api("sendMessage", {
     chat_id: chatId,
-    text: `💰 <b>3-Qadam: Kunlik ijara narxini kiriting:</b>\n\nMasalan: <i>250000</i> (so'mda) yoki <i>30 USD</i>\n\n<i>(Standart ijara: Kunlik)</i>`,
+    text: `💰 <b>3-Qadam: Kunlik ijara narxini kiriting:</b>\n\nMasalan: <i>250000</i> (so'mda) yoki <i>30 USD</i>`,
     parse_mode: "HTML",
   });
 }
 
-// Send ads list
-async function sendAdsList(chatId, categoryFilter = null, isAdminMode = false) {
-  const allAds = getAds();
-  const ads = categoryFilter
-    ? allAds.filter((a) => a.category.toLowerCase() === categoryFilter.toLowerCase())
-    : allAds;
-
-  if (ads.length === 0) {
-    await api("sendMessage", {
-      chat_id: chatId,
-      text: "Hozircha faol e'lonlar topilmadi.",
-    });
-    return;
-  }
-
-  for (const ad of ads.slice(0, 4)) {
-    const caption = formatAdCard(ad);
-    const inlineButtons = [
-      [
-        {
-          text: "📱 Web Appda ko'rish",
-          web_app: { url: `${WEB_APP_URL}?ad=${ad.id}` },
-        },
-      ],
-    ];
-
-    if (isAdminMode) {
-      inlineButtons.push([
-        { text: "🗑 E'lonni o'chirish", callback_data: `admin_del_${ad.id}` },
-      ]);
-    } else if (ad.telegramUsername) {
-      inlineButtons[0].push({
-        text: "💬 Telegram",
-        url: `https://t.me/${ad.telegramUsername}`,
-      });
-    }
-
-    if (ad.image && ad.image.startsWith("http")) {
-      await api("sendPhoto", {
-        chat_id: chatId,
-        photo: ad.image,
-        caption: caption,
-        parse_mode: "HTML",
-        reply_markup: { inline_keyboard: inlineButtons },
-      });
-    } else {
-      await api("sendMessage", {
-        chat_id: chatId,
-        text: caption,
-        parse_mode: "HTML",
-        reply_markup: { inline_keyboard: inlineButtons },
-      });
-    }
-  }
-
-  await api("sendMessage", {
-    chat_id: chatId,
-    text: `Barcha <b>${ads.length} ta</b> e'lonni rasmlar galereyasi va filtrlari bilan to'liq Web Appda ko'rishingiz mumkin:`,
-    parse_mode: "HTML",
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: "📱 To'liq Web Appni ochish",
-            web_app: { url: WEB_APP_URL },
-          },
-        ],
-      ],
-    },
-  });
-}
-
-// Handle updates
+// Handle Update
 async function handleUpdate(update) {
   if (update.message) {
     const msg = update.message;
@@ -690,99 +753,56 @@ async function handleUpdate(update) {
     subscribers.add(chatId);
     saveSubscribers();
 
-    // Check if in interactive ad creation session
+    // Check if in interactive session
     if (userSessions.has(chatId)) {
-      await handleAdCreationStep(chatId, user, msg);
+      await handleUserStep(chatId, user, msg);
       return;
     }
 
     if (text.startsWith("/start")) {
       await handleStart(chatId, user);
-    } else if (text.startsWith("/seturl")) {
-      if (!isAdmin(user)) {
-        await api("sendMessage", {
-          chat_id: chatId,
-          text: "Ushbu buyruq faqat Bosh Administrator (@Perfektum_1997) uchun!",
-        });
-        return;
-      }
-      const parts = text.split(" ");
-      if (parts.length < 2 || !parts[1].startsWith("http")) {
-        await api("sendMessage", {
-          chat_id: chatId,
-          text: `ℹ️ Hozirgi Web App manzili: <code>${WEB_APP_URL}</code>\n\nO'zgartirish uchun:\n<code>/seturl https://ijara-*.vercel.app</code> deb yuboring.`,
-          parse_mode: "HTML",
-        });
-        return;
-      }
-      WEB_APP_URL = parts[1].trim();
-      saveConfig({ webAppUrl: WEB_APP_URL });
-      await setupBot();
-      await api("sendMessage", {
-        chat_id: chatId,
-        text: `✅ <b>Web App manzili yangilandi!</b>\n\nYangi manzil: <code>${WEB_APP_URL}</code>\nBarcha tugmalar endi to'g'ri ishlaydi.`,
-        parse_mode: "HTML",
-      });
-    } else if (text === "/admin") {
-      if (isAdmin(user)) {
-        await handleAdminPanel(chatId);
-      } else {
-        await api("sendMessage", {
-          chat_id: chatId,
-          text: "Sizda admin huquqlari yo'q. Ushbu buyruq faqat @Perfektum_1997 uchun.",
-        });
-      }
+    } else if (text === "/reklama" || text === "/elon_berish") {
+      await handleReklamaRequest(chatId, user);
     } else if (text === "/webapp") {
+      const existingUser = getUserByTgId(user.id);
+      const url = existingUser
+        ? `${WEB_APP_URL}?userId=${existingUser.id}&name=${encodeURIComponent(existingUser.name)}&phone=${encodeURIComponent(existingUser.phone)}&tgId=${existingUser.telegramId}`
+        : WEB_APP_URL;
+
       await api("sendMessage", {
         chat_id: chatId,
         text: "IjaraBozor Web App ilovasini ochish:",
         reply_markup: {
           inline_keyboard: [
-            [{ text: "📱 Ilovani ochish", web_app: { url: WEB_APP_URL } }],
+            [{ text: "📱 Ilovani ochish", web_app: { url } }],
           ],
         },
       });
-    } else if (text === "/elonlar") {
-      await sendAdsList(chatId, null, isAdmin(user));
-    } else if (text === "/elon_berish") {
-      await startAdCreationWizard(chatId);
-    } else if (text === "/kategoriyalar") {
-      await api("sendMessage", {
-        chat_id: chatId,
-        text: "Kerakli toifani tanlang:",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: "🏢 Kvartiralar", callback_data: "cat_kvartira" },
-              { text: "🏡 Hovli va Dacha", callback_data: "cat_hovli" },
+    } else if (text === "/admin") {
+      if (isAdmin(user)) {
+        const ads = getAds();
+        const users = getUsers();
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: `👑 <b>BOSH ADMINISTRATOR (To'xtamurod Jo'rayev)</b>\n\n• Jami e'lonlar: ${ads.length} ta\n• Ro'yxatdan o'tgan foydalanuvchilar: ${users.length} nafar\n• Bot obunachilari: ${subscribers.size} nafar\n• Web App: <code>${WEB_APP_URL}</code>`,
+          parse_mode: "HTML",
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "📱 Admin WebApp Paneli", web_app: { url: `${WEB_APP_URL}?view=admin` } }],
             ],
-            [
-              { text: "🚗 Avtomobillar", callback_data: "cat_avto" },
-              { text: "💼 Ofislar", callback_data: "cat_ofis" },
-            ],
-          ],
-        },
-      });
+          },
+        });
+      } else {
+        await api("sendMessage", {
+          chat_id: chatId,
+          text: "Ushbu buyruq faqat Bosh Administrator (@Perfektum_1997) uchun.",
+        });
+      }
     } else {
-      await api("sendMessage", {
-        chat_id: chatId,
-        text: "Quyidagi tugmalardan birini tanlang:",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: "➕ E'lon Berish (Bot orqali)", callback_data: "cmd_add_bot" },
-              { text: "📱 Web App", web_app: { url: WEB_APP_URL } },
-            ],
-            [
-              { text: "📋 Barcha E'lonlar", callback_data: "cmd_ads" },
-            ],
-          ],
-        },
-      });
+      await handleStart(chatId, user);
     }
   }
 
-  // Handle Callback queries
   if (update.callback_query) {
     const cb = update.callback_query;
     const chatId = cb.message.chat.id;
@@ -791,10 +811,10 @@ async function handleUpdate(update) {
 
     await api("answerCallbackQuery", { callback_query_id: cb.id });
 
-    if (data === "cmd_ads") {
-      await sendAdsList(chatId, null, isAdmin(user));
-    } else if (data === "cmd_add" || data === "cmd_add_bot") {
-      await startAdCreationWizard(chatId);
+    if (data === "cmd_reklama") {
+      await handleReklamaRequest(chatId, user);
+    } else if (data === "cmd_start_ad") {
+      await startAdCreationWizard(chatId, user);
     } else if (data === "step_next_price") {
       const session = userSessions.get(chatId);
       if (session) {
@@ -809,28 +829,6 @@ async function handleUpdate(update) {
           await promptPrice(chatId);
         }
       }
-    } else if (data.startsWith("cat_")) {
-      const cat = data.replace("cat_", "");
-      await sendAdsList(chatId, cat, isAdmin(user));
-    } else if (data === "cmd_categories") {
-      await api("sendMessage", {
-        chat_id: chatId,
-        text: "Kerakli toifani tanlang:",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: "🏢 Kvartiralar", callback_data: "cat_kvartira" },
-              { text: "🏡 Hovli va Dacha", callback_data: "cat_hovli" },
-            ],
-            [
-              { text: "🚗 Avtomobillar", callback_data: "cat_avto" },
-              { text: "💼 Ofislar", callback_data: "cat_ofis" },
-            ],
-          ],
-        },
-      });
-    } else if (data === "admin_manage_ads") {
-      await sendAdsList(chatId, null, true);
     } else if (data.startsWith("admin_del_")) {
       const adId = data.replace("admin_del_", "");
       const ads = getAds();
@@ -840,20 +838,16 @@ async function handleUpdate(update) {
         chat_id: chatId,
         text: `✅ E'lon (${adId}) muvaffaqiyatli o'chirildi!`,
       });
-    } else if (data === "admin_stats" || data === "admin_refresh") {
-      await handleAdminPanel(chatId);
-    } else if (data === "admin_broadcast_info") {
-      await api("sendMessage", {
-        chat_id: chatId,
-        text: `📢 <b>Foydalanuvchilarga xabar yuborish:</b>\nHozirda botda ${subscribers.size} nafar obunachi mavjud.`,
-        parse_mode: "HTML",
-      });
     }
   }
 }
 
 // Long Polling Engine
 async function startPolling() {
+  try {
+    await api("deleteWebhook", { drop_pending_updates: false });
+  } catch (e) {}
+
   await setupBot();
   let offset = 0;
   console.log("⚡ Bot xabarlarni tinglamoqda...");
@@ -872,7 +866,7 @@ async function startPolling() {
         }
       }
     } catch (err) {
-      console.error("Polling loop xatosi:", err.message);
+      console.error("Polling xatosi:", err.message);
       await new Promise((r) => setTimeout(r, 3000));
     }
   }

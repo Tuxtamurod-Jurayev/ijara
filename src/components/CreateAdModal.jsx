@@ -391,7 +391,7 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* 3. Kunlik Narxi */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "0.75rem" }}>
+            <div className="form-grid-3">
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.4rem" }}>
                   3. Kunlik ijara narxi <span style={{ color: "var(--danger)" }}>*</span>
@@ -435,7 +435,7 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* 4. Telegram / Telefon Nomer */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div className="form-grid-2">
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.4rem" }}>
                   4. Telefon / Telegram nomer <span style={{ color: "var(--danger)" }}>*</span>
@@ -468,7 +468,7 @@ export const CreateAdModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* 5. Manzil va Toifa */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "0.75rem" }}>
+            <div className="form-grid-split">
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.4rem" }}>
                   5. Manzil (Joylashuv) <span style={{ color: "var(--danger)" }}>*</span>

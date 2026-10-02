@@ -71,78 +71,110 @@ export const AppProvider = ({ children }) => {
 
   // Sync theme attribute on <html>
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("ijara_theme", theme);
+    try {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("ijara_theme", theme);
+    } catch (e) {}
   }, [theme]);
 
   // Sync users to localStorage
   useEffect(() => {
-    localStorage.setItem("ijara_users", JSON.stringify(users));
+    try {
+      localStorage.setItem("ijara_users", JSON.stringify(users));
+    } catch (e) {}
   }, [users]);
 
   // Sync ads to localStorage
   useEffect(() => {
-    localStorage.setItem("ijara_ads", JSON.stringify(ads));
+    try {
+      localStorage.setItem("ijara_ads", JSON.stringify(ads));
+    } catch (e) {}
   }, [ads]);
 
   // Sync favorites
   useEffect(() => {
-    localStorage.setItem("ijara_favorites", JSON.stringify(favorites));
+    try {
+      localStorage.setItem("ijara_favorites", JSON.stringify(favorites));
+    } catch (e) {}
   }, [favorites]);
 
   // Sync currentUser to localStorage
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem("ijara_current_user", JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem("ijara_current_user");
-    }
+    try {
+      if (currentUser) {
+        localStorage.setItem("ijara_current_user", JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem("ijara_current_user");
+      }
+    } catch (e) {}
   }, [currentUser]);
 
   // Sync telegramConfig
   useEffect(() => {
-    localStorage.setItem("ijara_telegram_config", JSON.stringify(telegramConfig));
+    try {
+      localStorage.setItem("ijara_telegram_config", JSON.stringify(telegramConfig));
+    } catch (e) {}
   }, [telegramConfig]);
 
-  // Check Telegram WebApp on launch & Auto-detect user (Master Admin recognition)
+  // Check Telegram WebApp and URL query parameters for Instant Auto-Login
   useEffect(() => {
-    const tg = initTelegramWebApp();
-    if (tg.isInsideTelegram) {
-      setTelegramInfo({
-        isInsideTelegram: true,
-        user: tg.user,
-      });
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const paramUserId = params.get("userId");
+      const paramName = params.get("name");
+      const paramPhone = params.get("phone");
+      const paramTgId = params.get("tgId") || params.get("telegramId");
 
-      if (tg.user) {
+      const tg = initTelegramWebApp();
+      const tgUser = tg.user;
+      const effectiveTgId = paramTgId || (tgUser ? String(tgUser.id) : null);
+
+      if (effectiveTgId) {
         const isMasterAdmin =
-          String(tg.user.id) === "365446274" ||
-          tg.user.username?.toLowerCase() === "perfektum_1997";
+          effectiveTgId === "365446274" ||
+          (paramName && paramName.toLowerCase().includes("to'xtamurod")) ||
+          tgUser?.username?.toLowerCase() === "perfektum_1997";
+
+        const authenticatedUser = {
+          id: paramUserId || `tg-${effectiveTgId}`,
+          fullName:
+            paramName ||
+            (tgUser ? `${tgUser.first_name || ""} ${tgUser.last_name || ""}`.trim() : "") ||
+            (isMasterAdmin ? ADMIN_CREDENTIALS.fullName : "Telegram Foydalanuvchisi"),
+          username: tgUser?.username || (paramName ? paramName.toLowerCase().replace(/\s+/g, "_") : `tg_${effectiveTgId}`),
+          phone: paramPhone || "+998 90 000 00 00",
+          telegramId: effectiveTgId,
+          role: isMasterAdmin ? "admin" : "user",
+          isTelegramUser: true,
+          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+        };
+
+        setCurrentUser(authenticatedUser);
+
+        // Also save to users list if not exists
+        setUsers((prev) => {
+          const exists = prev.some(
+            (u) => u.id === authenticatedUser.id || String(u.telegramId) === String(effectiveTgId)
+          );
+          if (!exists) {
+            return [authenticatedUser, ...prev];
+          }
+          return prev;
+        });
 
         if (isMasterAdmin) {
-          const adminUser = {
-            id: "admin-perfektum",
-            fullName: `${tg.user.first_name || ""} ${tg.user.last_name || ""}`.trim() || ADMIN_CREDENTIALS.fullName,
-            username: tg.user.username || "Perfektum_1997",
-            phone: "+998 90 000 00 00",
-            role: "admin",
-            isTelegramUser: true,
-            telegramId: "365446274",
-          };
-          setCurrentUser(adminUser);
-          showToast("Salom, Bosh Administrator! Tizimga xush kelibsiz 👑", "success");
-        } else if (!currentUser) {
-          const tgUser = {
-            id: `tg-${tg.user.id}`,
-            fullName: `${tg.user.first_name || ""} ${tg.user.last_name || ""}`.trim() || "Telegram Foydalanuvchisi",
-            username: tg.user.username || `tg_${tg.user.id}`,
-            phone: "+998 ",
-            role: "user",
-            isTelegramUser: true,
-            avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80`,
-          };
-          setCurrentUser(tgUser);
+          showToast("Salom, Bosh Administrator (To'xtamurod Jo'rayev)! Tizimga xush kelibsiz 👑", "success");
+        } else {
+          showToast(`Xush kelibsiz, ${authenticatedUser.fullName}! ✅`, "success");
         }
+      } else if (tg.isInsideTelegram) {
+        setTelegramInfo({
+          isInsideTelegram: true,
+          user: tg.user,
+        });
       }
+    } catch (err) {
+      console.warn("Auto-login error:", err);
     }
   }, []);
 

@@ -121,7 +121,7 @@ export const AdDetailsModal = ({ ad, onClose }) => {
           <div
             style={{
               width: "100%",
-              height: "330px",
+              height: "clamp(220px, 45vw, 340px)",
               backgroundColor: "var(--bg-card-subtle)",
               overflow: "hidden",
               position: "relative",
@@ -130,7 +130,12 @@ export const AdDetailsModal = ({ ad, onClose }) => {
             <img
               src={currentImg}
               alt={ad.title}
+              loading="lazy"
+              decoding="async"
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e) => {
+                e.target.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80";
+              }}
             />
 
             {imagesList.length > 1 && (

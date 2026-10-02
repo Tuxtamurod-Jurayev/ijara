@@ -32,7 +32,7 @@ function isAdmin(user) {
 }
 
 export default async function handler(req, res) {
-  // Allow health check via GET
+  // Health check via GET
   if (req.method !== "POST") {
     return res.status(200).json({
       status: "online",
@@ -47,12 +47,11 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, note: "empty body" });
   }
 
-  const host = req.headers.host || "ijara.vercel.app";
+  const host = req.headers.host || "ijara-gold.vercel.app";
   const protocol = req.headers["x-forwarded-proto"] || "https";
   const webAppUrl = `${protocol}://${host}`;
 
   try {
-    // 1. Handle incoming text / commands
     if (update.message) {
       const msg = update.message;
       const chatId = msg.chat.id;
@@ -60,105 +59,69 @@ export default async function handler(req, res) {
       const user = msg.from;
 
       if (text.startsWith("/start")) {
-        const isUserAdmin = isAdmin(user);
-        if (isUserAdmin) {
-          await tgApi("sendMessage", {
-            chat_id: chatId,
-            text: `👑 <b>Assalomu alaykum, Bosh Administrator (To'xtamurod Jo'rayev)!</b>\n\nIjaraBozor boshqaruv markaziga xush kelibsiz. Bot avtomatik 24/7 rejimda ishlamoqda.`,
-            parse_mode: "HTML",
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: "📱 Admin WebApp Paneli", web_app: { url: `${webAppUrl}?view=admin` } }],
-                [{ text: "➕ Yangi E'lon Berish", web_app: { url: `${webAppUrl}?action=create` } }],
-                [{ text: "📋 Barcha E'lonlar", callback_data: "cmd_ads" }],
-              ],
-            },
-          });
-        } else {
-          await tgApi("sendMessage", {
-            chat_id: chatId,
-            text: `Assalomu alaykum, <b>${user?.first_name || "Foydalanuvchi"}</b>! 👋\n\n<b>IjaraBozor</b> platformasiga xush kelibsiz! 🏠🚗\nBu yerda kvartira, uy, avtomobil va jihozlarni qulay ijaraga oling yoki o'z e'loningizni joylang!`,
-            parse_mode: "HTML",
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  { text: "📱 Ijara Bozor Web App", web_app: { url: webAppUrl } },
-                  { text: "➕ E'lon Berish", web_app: { url: `${webAppUrl}?action=create` } },
-                ],
-                [
-                  { text: "📋 E'lonlar", callback_data: "cmd_ads" },
-                  { text: "🏢 Kvartiralar", callback_data: "cat_kvartira" },
-                  { text: "🚗 Avtomobillar", callback_data: "cat_avto" },
-                ],
-              ],
-            },
-          });
-        }
+        const startText = `Salom! Siz bu yerdan o'zingizga kerakli buyumlarni ijaraga topishingiz mumkin.`;
+        const webAppLoginUrl = `${webAppUrl}?tgId=${user.id}`;
+
+        await tgApi("sendMessage", {
+          chat_id: chatId,
+          text: startText,
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "🔍 Buyumlarni ko'rish", web_app: { url: webAppLoginUrl } }],
+              [{ text: "📢 Reklama joylashtirish", callback_data: "cmd_reklama" }],
+            ],
+          },
+        });
+      } else if (text === "/reklama") {
+        await tgApi("sendMessage", {
+          chat_id: chatId,
+          text: `Ro'yxatdan o'ting va botimizga reklama joylashtirishingiz mumkin.\n\nWeb App orqali to'liq e'lon berish:`,
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "➕ Reklama berish", web_app: { url: `${webAppUrl}?action=create&tgId=${user.id}` } }],
+              [{ text: "🔍 Buyumlarni ko'rish", web_app: { url: `${webAppUrl}?tgId=${user.id}` } }],
+            ],
+          },
+        });
       } else if (text === "/admin") {
         if (isAdmin(user)) {
           await tgApi("sendMessage", {
             chat_id: chatId,
-            text: `👑 <b>IjaraBozor Admin Paneli:</b>\n\nTo'xtamurod Jo'rayev (@Perfektum_1997 | ID: 365446274)\nTizim holati: Faol 🟢`,
+            text: `👑 <b>BOSH ADMINISTRATOR (To'xtamurod Jo'rayev)</b>\n\nAdmin boshqaruv panelini ochish:`,
             parse_mode: "HTML",
             reply_markup: {
               inline_keyboard: [
-                [{ text: "📱 Admin Web Appni ochish", web_app: { url: `${webAppUrl}?view=admin` } }],
+                [{ text: "📱 Admin WebApp Paneli", web_app: { url: `${webAppUrl}?view=admin` } }],
               ],
             },
           });
-        } else {
-          await tgApi("sendMessage", {
-            chat_id: chatId,
-            text: "Ushbu buyruq faqat Bosh Administrator (@Perfektum_1997) uchun!",
-          });
         }
-      } else if (text === "/elon_berish") {
-        await tgApi("sendMessage", {
-          chat_id: chatId,
-          text: `➕ <b>Yangi Ijara E'loni Joylash</b>\n\nE'lon nomi, 3 ta rasm, kunlik narx va manzil bilan e'lon berish:`,
-          parse_mode: "HTML",
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "➕ E'lon Berish Formasini ochish", web_app: { url: `${webAppUrl}?action=create` } }],
-            ],
-          },
-        });
-      } else {
-        await tgApi("sendMessage", {
-          chat_id: chatId,
-          text: `Quyidagi tugma orqali ilovani ochishingiz mumkin:`,
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "📱 Ijara Bozor Web App", web_app: { url: webAppUrl } }],
-              [{ text: "➕ E'lon Berish", web_app: { url: `${webAppUrl}?action=create` } }],
-            ],
-          },
-        });
       }
     }
 
-    // 2. Handle callback queries
     if (update.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message.chat.id;
       const data = cb.data;
+      const user = cb.from;
 
       await tgApi("answerCallbackQuery", { callback_query_id: cb.id });
 
-      if (data === "cmd_ads") {
+      if (data === "cmd_reklama") {
         await tgApi("sendMessage", {
           chat_id: chatId,
-          text: "Barcha e'lonlarni rasmlar va to'liq filtrlari bilan Web Appda ko'rishingiz mumkin:",
+          text: `Ro'yxatdan o'ting va botimizga reklama joylashtirishingiz mumkin.\n\nQuyidagi tugma orqali reklama formasini oching yoki bot orqali davom eting:`,
           reply_markup: {
             inline_keyboard: [
-              [{ text: "📱 E'lonlar ro'yxatini ochish", web_app: { url: webAppUrl } }],
+              [{ text: "➕ Reklama joylashtirish", web_app: { url: `${webAppUrl}?action=create&tgId=${user.id}` } }],
+              [{ text: "🔍 Barcha e'lonlar", web_app: { url: `${webAppUrl}?tgId=${user.id}` } }],
             ],
           },
         });
       }
     }
-  } catch (e) {
-    console.error("Webhook processing error:", e);
+  } catch (err) {
+    console.error("Vercel webhook error:", err);
   }
 
   return res.status(200).json({ ok: true });

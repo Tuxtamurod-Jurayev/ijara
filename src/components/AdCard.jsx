@@ -63,6 +63,10 @@ export const AdCard = ({ ad, onSelectAd }) => {
           onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.04)")}
           onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
           loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            e.target.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80";
+          }}
         />
 
         {/* Top Badges */}

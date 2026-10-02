@@ -1,8 +1,8 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
-import { Home, Send, Shield, Heart } from "./icons";
+import { IconHome } from "./icons";
 
-export const Footer = ({ onOpenTelegram }) => {
+export const Footer = () => {
   const { setActiveView } = useApp();
 
   return (
@@ -10,114 +10,91 @@ export const Footer = ({ onOpenTelegram }) => {
       style={{
         borderTop: "1px solid var(--border)",
         background: "var(--bg-card)",
-        padding: "3rem 0 2rem",
+        padding: "2rem 0 1.5rem",
         marginTop: "auto",
       }}
     >
       <div className="container">
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: "2.5rem",
-            marginBottom: "2.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "1.25rem",
+            marginBottom: "1.5rem",
           }}
         >
-          {/* Col 1 */}
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.85rem" }}>
-              <div
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  borderRadius: "8px",
-                  background: "var(--primary-gradient)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                }}
-              >
-                <Home size={18} />
-              </div>
-              <span style={{ fontSize: "1.2rem", fontWeight: "800" }}>
+          {/* Brand info */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <div
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "8px",
+                background: "var(--primary-gradient)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+              }}
+            >
+              <IconHome size={17} />
+            </div>
+            <div>
+              <span style={{ fontSize: "1.1rem", fontWeight: "800" }}>
                 Ijara<span style={{ color: "var(--primary)" }}>Bozor</span>
               </span>
+              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "0.5rem" }}>
+                O'zbekistonda tezkor va qulay ijara platformasi
+              </span>
             </div>
-            <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-              O'zbekistonda uy-joy, transport va jihozlarni to'g'ridan-to'g'ri egasidan ijaraga olish va berish bo'yicha qulay portal.
-            </p>
-          </div>
-
-          {/* Col 2: Quick Links */}
-          <div>
-            <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "1rem" }}>
-              Bo'limlar
-            </h4>
-            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.875rem" }}>
-              <li>
-                <button
-                  onClick={() => setActiveView("home")}
-                  style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
-                >
-                  Barcha e'lonlar
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onOpenTelegram}
-                  style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
-                >
-                  Telegram Bot integratsiyasi
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setActiveView("admin")}
-                  style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
-                >
-                  Admin Boshqaruv
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 3: Telegram bot & deployment */}
-          <div>
-            <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "1rem" }}>
-              Telegram & Vercel
-            </h4>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.75rem", lineHeight: 1.5 }}>
-              Ilova GitHub va Vercel uchun to'liq optimallashtirilgan. Keyingi bosqichda Telegram Botga bevosita bog'lanadi.
-            </p>
-            <button
-              onClick={onOpenTelegram}
-              className="btn btn-secondary btn-sm"
-              style={{ gap: "0.4rem" }}
-            >
-              <Send size={14} color="#0088cc" />
-              <span>Bot sozlamalari</span>
-            </button>
           </div>
         </div>
 
-        {/* Bottom copyright */}
+        {/* Bottom copyright line with discreet admin trigger */}
         <div
           style={{
             borderTop: "1px solid var(--border)",
-            paddingTop: "1.5rem",
+            paddingTop: "1rem",
             display: "flex",
-            flexWrap: "wrap",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: "1rem",
             fontSize: "0.8rem",
             color: "var(--text-muted)",
           }}
         >
-          <div>© {new Date().getFullYear()} IjaraBozor Platformasi. Barcha huquqlar himoyalangan.</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-            <span>Ishonchli va qulay ijara tizimi</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+            <span>© {new Date().getFullYear()} IjaraBozor. Barcha huquqlar himoyalangan.</span>
+            
+            {/* Bilinmaydigan Admin kirish nuqtasi */}
+            <button
+              onClick={() => {
+                setActiveView("admin");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--text-muted)",
+                opacity: 0.12,
+                cursor: "pointer",
+                padding: "0 4px",
+                fontSize: "0.75rem",
+                transition: "opacity 0.2s ease",
+                userSelect: "none",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.75")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.12")}
+              title="Tizim"
+              aria-label="Admin boshqaruv"
+            >
+              •
+            </button>
+          </div>
+
+          <div style={{ fontSize: "0.75rem", opacity: 0.8 }}>
+            Toshkent, O'zbekiston
           </div>
         </div>
       </div>
